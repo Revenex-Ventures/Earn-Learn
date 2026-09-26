@@ -82,15 +82,21 @@ class AdminStudentDetailScreen extends ConsumerWidget {
                     'This student is not present in the institutional roster.',
               ),
             )
-          : _AdminStudentDetailView(data: data),
+          : _AdminStudentDetailView(
+            data: data,
+            resolveEvidence: buildDayEvidenceResolver(
+              ref.watch(attendanceGatewayProvider),
+            ),
+          ),
     );
   }
 }
 
 class _AdminStudentDetailView extends StatelessWidget {
-  const _AdminStudentDetailView({required this.data});
+  const _AdminStudentDetailView({required this.data, this.resolveEvidence});
 
   final AdminStudentDetailData data;
+  final DayEvidenceResolver? resolveEvidence;
 
   @override
   Widget build(BuildContext context) {
@@ -115,6 +121,7 @@ class _AdminStudentDetailView extends StatelessWidget {
                 records: data.records,
                 month: data.month,
                 maxMonthlyHours: data.assignment?.maxMonthlyHours ?? 40,
+                resolveEvidence: resolveEvidence,
                 headerTrailing: supervisor == null
                     ? null
                     : StatusBadge.status(style: supervisor.status.style),

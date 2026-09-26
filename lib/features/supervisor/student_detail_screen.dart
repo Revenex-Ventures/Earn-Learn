@@ -101,6 +101,9 @@ class SupervisorStudentDetailScreen extends ConsumerWidget {
                   records: data.records,
                   month: data.month,
                   maxMonthlyHours: data.assignment?.maxMonthlyHours ?? 40,
+                  resolveEvidence: buildDayEvidenceResolver(
+                    ref.watch(attendanceGatewayProvider),
+                  ),
                   headerTrailing: data.assignment == null
                       ? null
                       : StatusBadge.status(

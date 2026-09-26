@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/models/models.dart';
 import '../../domain/domain.dart';
 import '../../features/auth/role_selection/role_selector_provider.dart';
 import '../../shared/mock_data/mock_data.dart';
@@ -126,3 +127,29 @@ final accountDisplayNameProvider = FutureProvider.autoDispose<String>((ref) asyn
   if (name != null && name.trim().isNotEmpty) return name;
   return mockAdminName;
 });
+
+/// Resolves the duty photograph for one attendance day, for the shared student
+/// dossier.
+///
+/// Returns null whenever no servable image exists — a local-mode backend, a
+/// lost upload, or a gateway error — so the dossier renders an honest
+/// "Photo not available" tile rather than a broken image. Only real http(s)
+/// evidence URLs are handed to the image loader.
+DayEvidenceResolver buildDayEvidenceResolver(AttendanceGateway gateway) {
+  return (record) async {
+    if (record.evidenceRef == null) return null;
+    try {
+      final url = await gateway.evidenceUrl(
+        sessionId: record.evidenceRef!,
+        studentId: record.studentId,
+        kind: 'checkin',
+      );
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        return null;
+      }
+      return url;
+    } catch (_) {
+      return null;
+    }
+  };
+}

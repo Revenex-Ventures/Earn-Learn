@@ -1,6 +1,15 @@
 import 'approval_status.dart';
 import 'attendance_status.dart';
 
+/// Resolves the duty photograph for a single attendance day.
+///
+/// Declared beside the record it describes so both the data layer (which knows
+/// how to fetch evidence) and the UI layer (which renders it) can depend on it
+/// without either importing the other. Returning null — or throwing — means
+/// "no servable photograph", and the UI must say so rather than draw a broken
+/// image.
+typedef DayEvidenceResolver = Future<String?> Function(AttendanceRecord record);
+
 class AttendanceRecord {
   const AttendanceRecord({
     this.id = '',
@@ -14,6 +23,7 @@ class AttendanceRecord {
     this.checkIn,
     this.checkOut,
     this.exception,
+    this.evidenceRef,
   });
 
   final String id;
@@ -36,6 +46,23 @@ class AttendanceRecord {
   final DateTime? checkIn;
   final DateTime? checkOut;
   final String? exception;
+
+  /// Opaque handle to the evidence captured for this day (the duty photograph).
+  ///
+  /// Null whenever the day has no retrievable photograph — an absent day, a
+  /// lost upload, or a backend that cannot serve evidence. It is a reference
+  /// only; the bytes are resolved on demand and never cached on the record.
+  final String? evidenceRef;
+
+  /// Whether a duty photograph is expected to exist for this day.
+  ///
+  /// True for a day the student actually attended, so the UI can tell
+  /// "photograph not captured" apart from "no photograph expected".
+  bool get expectsEvidence =>
+      checkIn != null && status != AttendanceStatus.absent;
+
+  /// True when the day recorded an arrival, a departure, or both.
+  bool get hasAnyTime => checkIn != null || checkOut != null;
 
   /// True when the day requires a supervisor review.
   bool get needsReview =>
