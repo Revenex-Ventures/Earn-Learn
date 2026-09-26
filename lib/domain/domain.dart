@@ -8,6 +8,7 @@ export 'attendance/session_state_machine.dart';
 export 'attendance/session_status.dart';
 export 'calendar/day_resolution.dart';
 export 'identity/account_link.dart';
+export 'identity/face_embedding_match.dart';
 export 'identity/identity_resolution.dart';
 export 'payroll/payroll_calc.dart';
 export 'permissions/permissions.dart';

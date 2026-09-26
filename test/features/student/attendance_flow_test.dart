@@ -711,7 +711,11 @@ void main() {
       expect(controller.state.op, AttendanceOpKind.checkOut);
       expect(controller.state.sessionId, '2026-09-19');
 
-      // Capture dual evidence
+      // Capture dual evidence. Scroll it into view first: on a short viewport
+      // the sheet content is taller than the visible area, so tapping the
+      // button's un-scrolled position would hit the sheet background instead.
+      await tester.ensureVisible(find.text('Capture Both'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Capture Both'));
       await tester.pumpAndSettle();
 

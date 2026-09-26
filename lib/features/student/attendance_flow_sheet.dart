@@ -10,6 +10,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/models/models.dart';
 import '../../domain/attendance/session_status.dart';
 import '../../shared/components/components.dart';
+import '../attendance/face/face_providers.dart';
 import 'check_in_controller.dart';
 
 /// Modal bottom sheet driving the institutional student attendance journey
@@ -260,7 +261,16 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                 onCapture: uiState.busy ? null : () => controller.captureGeo(),
                 actionLabel: uiState.hasGeo ? 'Re-acquire' : 'Acquire',
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.sm),
+
+              // Same-person verification. Purely informational: it reads the
+              // model's availability and never gates the check-in. Deliberately
+              // outside AttendanceFlowController - the state machine's contract
+              // is selfie + GPS, and that is unchanged.
+              _FaceVerificationNote(
+                available: ref.watch(faceVerificationAvailableProvider),
+              ),
+              const SizedBox(height: AppSpacing.md),
 
               // Error banner if any
               if (uiState.error.isNotEmpty) ...[
@@ -374,6 +384,51 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// States plainly whether same-person verification can run in this build.
+///
+/// When the detector is absent it says "Configuration required" rather than
+/// showing a tick or hiding the row, because a silent skip would let an
+/// unverified check-in look identical to a verified one.
+class _FaceVerificationNote extends StatelessWidget {
+  const _FaceVerificationNote({required this.available});
+
+  final bool available;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.paper,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            available ? Icons.face_retouching_natural : Icons.info_outline,
+            size: 16,
+            color: available ? AppColors.sage : AppColors.slate,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              available
+                  ? 'Same-person check available.'
+                  : 'Same-person check: configuration required, so this '
+                      'check-in is not face-verified.',
+              style: AppTextStyles.bodySmall,
+            ),
+          ),
+        ],
       ),
     );
   }
