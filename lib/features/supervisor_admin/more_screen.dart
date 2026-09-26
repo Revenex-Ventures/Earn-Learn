@@ -7,6 +7,7 @@ import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/routing/route_paths.dart';
 import '../../shared/components/components.dart';
+import 'admin_identity_avatar.dart';
 
 /// Phone-only governance hub: Payroll, Profile and Reports plus the app
 /// about card. Deliberately excludes directory/student-review features.
@@ -23,7 +24,7 @@ class AdminMoreScreen extends StatelessWidget {
           children: [
             const ContextHeader(
               greeting: 'More',
-              trailing: InitialsAvatar(name: 'SDO In-Charge'),
+              trailing: AdminIdentityAvatar(),
             ),
             const SizedBox(height: AppSpacing.lg),
             const SectionHeader(

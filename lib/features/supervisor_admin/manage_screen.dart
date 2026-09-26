@@ -8,6 +8,7 @@ import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
+import 'admin_identity_avatar.dart';
 import '../../shared/components/components.dart';
 
 /// Directory counts for the management hub, driven by the real repositories.
@@ -78,7 +79,7 @@ class _AdminManageView extends StatelessWidget {
           children: [
             const ContextHeader(
               greeting: 'Manage',
-              trailing: InitialsAvatar(name: 'SDO In-Charge'),
+              trailing: AdminIdentityAvatar(),
             ),
             const SizedBox(height: AppSpacing.lg),
             const SectionHeader(

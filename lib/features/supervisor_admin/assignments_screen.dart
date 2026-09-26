@@ -5,6 +5,7 @@ import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
+import 'admin_identity_avatar.dart';
 import '../../shared/components/components.dart';
 
 /// Shift payload with resolved student and supervisor display names.
@@ -93,7 +94,7 @@ class _AdminAssignmentsScreenState
           children: [
             ContextHeader(
               greeting: 'Assignments',
-              trailing: InitialsAvatar(name: 'SDO In-Charge'),
+              trailing: AdminIdentityAvatar(),
             ),
             const SizedBox(height: AppSpacing.lg),
             SectionHeader(

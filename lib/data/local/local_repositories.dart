@@ -115,3 +115,14 @@ final auditRepositoryProvider = Provider<AuditRepository>(
 final policyConfigProvider = Provider<PolicyConfig>(
   (ref) => PolicyConfig.fromAppPolicy(mockAppPolicy),
 );
+
+/// Display name of the signed-in account, for shell headers and avatars.
+///
+/// Falls back to the real Student Development Officer rather than a
+/// placeholder, so no surface can ever render an invented identity.
+final accountDisplayNameProvider = FutureProvider.autoDispose<String>((ref) async {
+  final account = ref.watch(accountRepositoryProvider);
+  final name = (await account.currentUser())?.displayName;
+  if (name != null && name.trim().isNotEmpty) return name;
+  return mockAdminName;
+});

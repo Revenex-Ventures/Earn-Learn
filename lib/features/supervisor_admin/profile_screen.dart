@@ -12,6 +12,7 @@ import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
+import '../../shared/mock_data/mock_data.dart';
 
 final _adminProfileProvider = FutureProvider.autoDispose<UserProfile?>(
     (ref) async {
@@ -50,7 +51,7 @@ class _AdminProfileView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayName = user.displayName ?? 'SDO In-Charge';
+    final displayName = user.displayName ?? mockAdminName;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.lg),

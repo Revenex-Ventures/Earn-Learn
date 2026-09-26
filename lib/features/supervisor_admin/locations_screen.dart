@@ -9,6 +9,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
+import 'admin_identity_avatar.dart';
 import '../../shared/components/components.dart';
 
 /// Work-zone payload with stationed-student counts from the assignment join.
@@ -84,7 +85,7 @@ class _AdminLocationsScreenState extends ConsumerState<AdminLocationsScreen> {
           children: [
             ContextHeader(
               greeting: 'Locations',
-              trailing: InitialsAvatar(name: 'SDO In-Charge'),
+              trailing: AdminIdentityAvatar(),
             ),
             const SizedBox(height: AppSpacing.lg),
             SectionHeader(

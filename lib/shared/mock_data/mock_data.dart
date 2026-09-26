@@ -38,16 +38,45 @@ final List<Location> mockLocationsWithCoverage = [
 /// Server-side policy object (institution), 40h ceiling is a configurable value.
 const AppPolicy mockAppPolicy = AppPolicy(monthlyMaxHours: 40);
 
-/// Default student for demo / student portal (Mayur Gaikwad, Library).
+/// Default student for demo / student portal (STU-001, Library).
 final Student mockCurrentStudent = mockStudents.first;
 
-/// Assigned supervisor used by supervisor portals (Mr. K.J. Dhage).
+/// Assigned supervisor used by supervisor portals (SV-01, Library).
 final Supervisor mockCurrentSupervisor = mockSupervisors.first;
+
+/// The real Student Development Officer who administers the scheme. Used as
+/// the honest fallback whenever no signed-in account name is available —
+/// never a placeholder stand-in.
+const String mockAdminName = 'Dr. B.R. Borkar';
+const String mockAdminRole = 'Student Development Officer';
+const String mockAdminEmail = 'sdo@avcoe.edu.in';
+
+/// Resolves a student's real name from the roster by their `STU-###` id.
+/// Display surfaces call this instead of hard-coding an identity string, so a
+/// re-imported allotment sheet flows through every screen automatically.
+String mockStudentName(String studentId) {
+  for (final s in mockStudents) {
+    if (s.id == studentId) return s.name;
+  }
+  return 'Not available';
+}
+
+/// Resolves a student's workplace from their assignment, for the same reason:
+/// location names must come from the sheet, never from a literal in this file.
+String mockStudentLocation(String studentId) {
+  final assignment = mockAssignmentFor(studentId);
+  if (assignment == null) return 'Not assigned';
+  if (assignment.locationName.isNotEmpty) return assignment.locationName;
+  for (final l in mockLocations) {
+    if (l.id == assignment.locationId) return l.name;
+  }
+  return 'Not assigned';
+}
 
 /// Profile records for signed-in demo identities (student, supervisor, admin).
 final UserProfile mockStudentUser = UserProfile(
   uid: 'u-stu-001',
-  email: 'mayur.gaikwad@student.avcoe.org',
+  email: 'el2627.student@avcoe.edu.in',
   displayName: mockCurrentStudent.name,
   role: UserRole.student,
   status: AccountStatus.active,
@@ -69,8 +98,8 @@ final UserProfile mockSupervisorUser = UserProfile(
 
 final UserProfile mockAdminUser = UserProfile(
   uid: 'u-admin-001',
-  email: 'sdo@amrutvahini.edu.in',
-  displayName: 'SDO In-Charge',
+  email: mockAdminEmail,
+  displayName: mockAdminName,
   role: UserRole.admin,
   status: AccountStatus.active,
   createdAt: DateTime(mockNow.year - 3, 4, 1),
@@ -173,7 +202,7 @@ List<CalendarEvent> mockMonthCalendar(DateTime now) {
 final List<CalendarEvent> mockCalendar = mockMonthCalendar(mockNow);
 
 // -----------------------------------------------------------------------------
-// Attendance Records for Demo Student (3h Daily Duty in Library)
+// Attendance Records for the default student (3h daily duty)
 // -----------------------------------------------------------------------------
 List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
   final sid = studentId ?? mockCurrentStudent.id;
@@ -192,7 +221,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         date: date,
         status: AttendanceStatus.scheduled,
         hours: 0,
-        location: 'Library',
+        location: mockStudentLocation(sid),
       ));
       continue;
     }
@@ -205,7 +234,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
           date: date,
           status: AttendanceStatus.pending,
           hours: 0,
-          location: 'Library',
+          location: mockStudentLocation(sid),
         ));
       } else if (now.hour < 20) {
         records.add(AttendanceRecord(
@@ -215,7 +244,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
           status: AttendanceStatus.present,
           hours: 3.0,
           verifiedHours: 1.5,
-          location: 'Library',
+          location: mockStudentLocation(sid),
           checkIn: DateTime(now.year, now.month, now.day, 17, 2),
         ));
       } else {
@@ -226,7 +255,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
           status: AttendanceStatus.present,
           hours: 3.0,
           verifiedHours: 3.0,
-          location: 'Library',
+          location: mockStudentLocation(sid),
           checkIn: DateTime(now.year, now.month, now.day, 17, 2),
           checkOut: DateTime(now.year, now.month, now.day, 20, 0),
           review: ApprovalStatus.approved,
@@ -249,7 +278,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         status: AttendanceStatus.present,
         hours: 3.0,
         verifiedHours: 3.0,
-        location: 'Library',
+        location: mockStudentLocation(sid),
         checkIn: DateTime(date.year, date.month, date.day, 17, 0),
         checkOut: DateTime(date.year, date.month, date.day, 20, 1),
         review: ApprovalStatus.approved,
@@ -262,7 +291,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         status: AttendanceStatus.pending,
         hours: 3.0,
         verifiedHours: 0,
-        location: 'Library',
+        location: mockStudentLocation(sid),
         checkIn: DateTime(date.year, date.month, date.day, 17, 5),
         checkOut: DateTime(date.year, date.month, date.day, 20, 0),
         review: ApprovalStatus.pending,
@@ -275,7 +304,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         status: AttendanceStatus.late,
         hours: 2.5,
         verifiedHours: 2.5,
-        location: 'Library',
+        location: mockStudentLocation(sid),
         checkIn: DateTime(date.year, date.month, date.day, 17, 35),
         checkOut: DateTime(date.year, date.month, date.day, 20, 0),
         exception: 'Late arrival due to class practicals',
@@ -289,7 +318,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         status: AttendanceStatus.absent,
         hours: 0,
         verifiedHours: 0,
-        location: 'Library',
+        location: mockStudentLocation(sid),
         review: ApprovalStatus.approved,
       ));
     } else {
@@ -300,7 +329,7 @@ List<AttendanceRecord> mockMonthAttendance(DateTime now, {String? studentId}) {
         status: AttendanceStatus.present,
         hours: 3.0,
         verifiedHours: 3.0,
-        location: 'Library',
+        location: mockStudentLocation(sid),
         checkIn: DateTime(date.year, date.month, date.day, 17, 0),
         checkOut: DateTime(date.year, date.month, date.day, 20, 0),
         review: ApprovalStatus.approved,
@@ -350,95 +379,109 @@ double mockVerifiedHoursFor(List<AttendanceRecord> records, [DateTime? month]) {
 
 // -----------------------------------------------------------------------------
 // Supervisor Verification Queue
+//
+// Student names and workplaces are resolved from the roster by `STU-###` id so
+// this queue tracks the allotment sheet instead of duplicating it. Re-import
+// the sheet and every row here follows automatically.
 // -----------------------------------------------------------------------------
-final List<VerificationItem> mockVerificationItems = [
-  VerificationItem(
-    id: 'V-101',
-    studentName: 'Pooja Sanjay Tambe',
-    studentId: 'STU-002',
-    location: 'Library',
-    type: VerificationType.checkOut,
-    submittedAt: mockNow.subtract(const Duration(minutes: 20)),
-    evidenceTime: mockNow.subtract(const Duration(minutes: 22)),
-    status: ApprovalStatus.pending,
-    summary: 'Check-out at 8:02 PM • Desk logs verified',
-  ),
-  VerificationItem(
-    id: 'V-102',
-    studentName: 'Sachin Dattatray Kolhe',
-    studentId: 'STU-003',
-    location: 'Library',
-    type: VerificationType.attendanceAudit,
-    submittedAt: mockNow.subtract(const Duration(hours: 1, minutes: 15)),
-    status: ApprovalStatus.pending,
-    summary: 'Monthly register audit review',
-  ),
-  VerificationItem(
-    id: 'V-103',
-    studentName: 'Rohit Balasaheb Thorat',
-    studentId: 'STU-009',
-    location: 'Kalsubai Hostel (Old)',
-    type: VerificationType.checkIn,
-    submittedAt: mockNow.subtract(const Duration(hours: 2, minutes: 10)),
-    evidenceTime: mockNow.subtract(const Duration(hours: 2, minutes: 12)),
-    status: ApprovalStatus.pending,
-    summary: 'Check-in at 6:00 PM • Zone selfie submitted',
-  ),
-  VerificationItem(
-    id: 'V-104',
-    studentName: 'Aniket Bhausaheb Dighe',
-    studentId: 'STU-004',
-    location: 'Library',
-    type: VerificationType.checkOut,
-    submittedAt: mockNow.subtract(const Duration(hours: 3, minutes: 30)),
-    status: ApprovalStatus.flagged,
-    summary: 'Check-out timestamp discrepancy (+18m)',
-  ),
-  VerificationItem(
-    id: 'V-105',
-    studentName: 'Mayur Anil Gaikwad',
-    studentId: 'STU-001',
-    location: 'Library',
-    type: VerificationType.attendanceAudit,
-    submittedAt: mockNow.subtract(const Duration(hours: 6)),
-    status: ApprovalStatus.approved,
-    summary: 'Weekly attendance review approved',
-  ),
-];
+List<VerificationItem> get mockVerificationItems => [
+      VerificationItem(
+        id: 'V-101',
+        studentName: mockStudentName('STU-052'),
+        studentId: 'STU-052',
+        location: mockStudentLocation('STU-052'),
+        type: VerificationType.checkOut,
+        submittedAt: mockNow.subtract(const Duration(minutes: 20)),
+        evidenceTime: mockNow.subtract(const Duration(minutes: 22)),
+        status: ApprovalStatus.pending,
+        summary: 'Check-out at 8:02 PM • Desk logs verified',
+      ),
+      VerificationItem(
+        id: 'V-102',
+        studentName: mockStudentName('STU-003'),
+        studentId: 'STU-003',
+        location: mockStudentLocation('STU-003'),
+        type: VerificationType.attendanceAudit,
+        submittedAt: mockNow.subtract(const Duration(hours: 1, minutes: 15)),
+        status: ApprovalStatus.pending,
+        summary: 'Monthly register audit review',
+      ),
+      VerificationItem(
+        id: 'V-103',
+        studentName: mockStudentName('STU-001'),
+        studentId: 'STU-001',
+        location: mockStudentLocation('STU-001'),
+        type: VerificationType.checkIn,
+        submittedAt: mockNow.subtract(const Duration(hours: 2, minutes: 10)),
+        evidenceTime: mockNow.subtract(const Duration(hours: 2, minutes: 12)),
+        status: ApprovalStatus.pending,
+        summary: 'Check-in at 6:00 PM • Zone selfie submitted',
+      ),
+      VerificationItem(
+        id: 'V-104',
+        studentName: mockStudentName('STU-004'),
+        studentId: 'STU-004',
+        location: mockStudentLocation('STU-004'),
+        type: VerificationType.checkOut,
+        submittedAt: mockNow.subtract(const Duration(hours: 3, minutes: 30)),
+        status: ApprovalStatus.flagged,
+        summary: 'Check-out timestamp discrepancy (+18m)',
+      ),
+      VerificationItem(
+        id: 'V-105',
+        studentName: mockStudentName('STU-001'),
+        studentId: 'STU-001',
+        location: mockStudentLocation('STU-001'),
+        type: VerificationType.attendanceAudit,
+        submittedAt: mockNow.subtract(const Duration(hours: 6)),
+        status: ApprovalStatus.approved,
+        summary: 'Weekly attendance review approved',
+      ),
+    ];
 
 List<VerificationItem> get mockOpenVerifications =>
     mockVerificationItems.where((v) => v.status != ApprovalStatus.approved).toList();
 
 // -----------------------------------------------------------------------------
 // Supervisor Dynamic Audit Log
+//
+// The acting supervisor is resolved from the roster by `SV-##` id — the audit
+// trail must name a real accountable person, never a literal in this file.
 // -----------------------------------------------------------------------------
-final List<AuditLogEntry> mockAuditLog = [
-  AuditLogEntry(
-    id: 'A-101',
-    action: AuditAction.attendanceApproved,
-    targetType: 'attendance',
-    targetId: 'ATT-TODAY',
-    actorName: 'Mr. K.J. Dhage',
-    createdAt: mockNow.subtract(const Duration(hours: 2)),
-    note: 'Duty in Library verified',
-  ),
-  AuditLogEntry(
-    id: 'A-102',
-    action: AuditAction.attendanceFlagged,
-    targetType: 'attendance',
-    targetId: 'ATT-16',
-    actorName: 'Mr. K.J. Dhage',
-    createdAt: mockNow.subtract(const Duration(days: 2)),
-    note: 'Outside assigned work zone during check-out',
-  ),
-];
+String mockSupervisorName(String supervisorId) {
+  for (final s in mockSupervisors) {
+    if (s.id == supervisorId) return s.name;
+  }
+  return 'Not assigned';
+}
+
+List<AuditLogEntry> get mockAuditLog => [
+      AuditLogEntry(
+        id: 'A-101',
+        action: AuditAction.attendanceApproved,
+        targetType: 'attendance',
+        targetId: 'ATT-TODAY',
+        actorName: mockSupervisorName('SV-01'),
+        createdAt: mockNow.subtract(const Duration(hours: 2)),
+        note: 'Duty at ${mockStudentLocation(mockCurrentStudent.id)} verified',
+      ),
+      AuditLogEntry(
+        id: 'A-102',
+        action: AuditAction.attendanceFlagged,
+        targetType: 'attendance',
+        targetId: 'ATT-16',
+        actorName: mockSupervisorName('SV-01'),
+        createdAt: mockNow.subtract(const Duration(days: 2)),
+        note: 'Outside assigned work zone during check-out',
+      ),
+    ];
 
 // -----------------------------------------------------------------------------
 // Admin Domain: Institutional Payroll Records (Not visible to Students)
 // -----------------------------------------------------------------------------
 final PayrollRecord mockCurrentPayroll = PayrollRecord(
   month: DateTime(mockNow.year, mockNow.month),
-  studentCount: 68,
+  studentCount: mockStudents.length,
   presentDays: 21,
   paidHolidays: 1,
   ratePerDay: 150,
@@ -446,41 +489,43 @@ final PayrollRecord mockCurrentPayroll = PayrollRecord(
   status: PaymentStatus.inProgress,
 );
 
-final List<PaymentRecord> mockPaymentRecords = [
-  PaymentRecord(
-    id: 'PAY-2026-09-001',
-    month: DateTime(mockNow.year, mockNow.month),
-    studentId: 'STU-001',
-    studentName: 'Mayur Anil Gaikwad',
-    verifiedHours: 32.0,
-    eligibleDays: 21,
-    paidHolidays: 1,
-    ratePerDay: 150,
-    calculatedAmount: 3300,
-    status: PaymentStatus.inProgress,
-  ),
-  PaymentRecord(
-    id: 'PAY-2026-09-002',
-    month: DateTime(mockNow.year, mockNow.month),
-    studentId: 'STU-002',
-    studentName: 'Pooja Sanjay Tambe',
-    verifiedHours: 30.0,
-    eligibleDays: 20,
-    paidHolidays: 1,
-    ratePerDay: 150,
-    calculatedAmount: 3150,
-    status: PaymentStatus.inProgress,
-  ),
-  PaymentRecord(
-    id: 'PAY-2026-09-003',
-    month: DateTime(mockNow.year, mockNow.month),
-    studentId: 'STU-003',
-    studentName: 'Sachin Dattatray Kolhe',
-    verifiedHours: 36.0,
-    eligibleDays: 22,
-    paidHolidays: 1,
-    ratePerDay: 150,
-    calculatedAmount: 3450,
-    status: PaymentStatus.approved,
-  ),
-];
+/// Payment rows resolve student names from the roster by `STU-###` id, so the
+/// payroll register follows the allotment sheet rather than duplicating it.
+List<PaymentRecord> get mockPaymentRecords => [
+      PaymentRecord(
+        id: 'PAY-001',
+        month: DateTime(mockNow.year, mockNow.month),
+        studentId: 'STU-001',
+        studentName: mockStudentName('STU-001'),
+        verifiedHours: 32.0,
+        eligibleDays: 21,
+        paidHolidays: 1,
+        ratePerDay: 150,
+        calculatedAmount: 3300,
+        status: PaymentStatus.inProgress,
+      ),
+      PaymentRecord(
+        id: 'PAY-002',
+        month: DateTime(mockNow.year, mockNow.month),
+        studentId: 'STU-002',
+        studentName: mockStudentName('STU-002'),
+        verifiedHours: 30.0,
+        eligibleDays: 20,
+        paidHolidays: 1,
+        ratePerDay: 150,
+        calculatedAmount: 3150,
+        status: PaymentStatus.inProgress,
+      ),
+      PaymentRecord(
+        id: 'PAY-003',
+        month: DateTime(mockNow.year, mockNow.month),
+        studentId: 'STU-003',
+        studentName: mockStudentName('STU-003'),
+        verifiedHours: 36.0,
+        eligibleDays: 22,
+        paidHolidays: 1,
+        ratePerDay: 150,
+        calculatedAmount: 3450,
+        status: PaymentStatus.approved,
+      ),
+    ];

@@ -9,6 +9,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
+import 'admin_identity_avatar.dart';
 import '../../shared/components/components.dart';
 
 /// Payroll payload: the current-month rollup and its payment records.
@@ -74,7 +75,7 @@ class _AdminPayrollView extends StatelessWidget {
             ContextHeader(
               greeting: 'Payroll',
               dateLine: DateFormat('MMMM yyyy').format(rollup.month),
-              trailing: InitialsAvatar(name: 'SDO In-Charge'),
+              trailing: AdminIdentityAvatar(),
             ),
             const SizedBox(height: AppSpacing.lg),
             const SectionHeader(
