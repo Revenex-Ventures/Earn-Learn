@@ -106,18 +106,103 @@ class _AdminLocationsScreenState extends ConsumerState<AdminLocationsScreen> {
                 title: 'No locations found',
                 message: 'Try a different search term.',
               )
-            else
-              for (var i = 0; i < filtered.length; i++) ...[
-                _LocationRow(
-                  location: filtered[i],
-                  studentCount: data.studentCounts[filtered[i].id] ?? 0,
-                ),
-                if (i != filtered.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
-              ],
+            else ...[
+              // Grouped by staffing, because "no supervisor assigned" is the
+              // actionable fact an administrator opens this screen for. The
+              // data carries no zone or building field, so grouping by one
+              // would mean inventing it.
+              _LocationGroup(
+                title: 'Needs a supervisor',
+                eyebrow: 'UNSTAFFED',
+                locations: filtered
+                    .where((l) => l.supervisorIds.isEmpty)
+                    .toList(),
+                studentCounts: data.studentCounts,
+                emptyMessage: 'Every work location has a supervisor assigned.',
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _LocationGroup(
+                title: 'Supervised',
+                eyebrow: 'STAFFED',
+                locations: filtered
+                    .where((l) => l.supervisorIds.isNotEmpty)
+                    .toList(),
+                studentCounts: data.studentCounts,
+                emptyMessage: 'No supervised locations match this search.',
+              ),
+            ],
           ],
         ),
       ),
+    );
+  }
+}
+
+class _LocationGroup extends StatelessWidget {
+  const _LocationGroup({
+    required this.title,
+    required this.eyebrow,
+    required this.locations,
+    required this.studentCounts,
+    required this.emptyMessage,
+  });
+
+  final String title;
+  final String eyebrow;
+  final List<Location> locations;
+  final Map<String, int> studentCounts;
+  final String emptyMessage;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = locations.length;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                eyebrow,
+                style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.inkSoft,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.paper,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                border: Border.all(color: AppColors.divider),
+              ),
+              child: Text('$count', style: AppTextStyles.labelSmall),
+            ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(title, style: AppTextStyles.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        if (locations.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: Text(emptyMessage, style: AppTextStyles.bodySmall),
+          )
+        else
+          for (var i = 0; i < locations.length; i++) ...[
+            _LocationRow(
+              location: locations[i],
+              studentCount: studentCounts[locations[i].id] ?? 0,
+            ),
+            if (i != locations.length - 1)
+              const SizedBox(height: AppSpacing.sm),
+          ],
+      ],
     );
   }
 }
@@ -168,9 +253,27 @@ class _LocationRow extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(
-                '$studentCount students stationed',
-                style: AppTextStyles.labelSmall,
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      '$studentCount students stationed',
+                      style: AppTextStyles.labelSmall,
+                    ),
+                  ),
+                  if (location.supervisorIds.isEmpty)
+                    Text(
+                      'No supervisor assigned',
+                      style: AppTextStyles.labelSmall
+                          .copyWith(color: AppColors.clay),
+                    )
+                  else
+                    Text(
+                      '${location.supervisorIds.length} supervisor'
+                      '${location.supervisorIds.length == 1 ? '' : 's'}',
+                      style: AppTextStyles.labelSmall,
+                    ),
+                ],
               ),
             ],
           ),
