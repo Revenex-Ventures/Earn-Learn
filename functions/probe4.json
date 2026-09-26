@@ -1,0 +1,7 @@
+{
+  "status": null,
+  "rawText": null,
+  "parsed": null,
+  "err": "TypeError: h.functionsBase is not a function",
+  "allowlist": true
+}

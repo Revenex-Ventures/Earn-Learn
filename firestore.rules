@@ -1,0 +1,81 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ---------------------------------------------------------------
+    // Stage 2A rule model: client reads where controlled; ALL writes to
+    // authoritative fields flow through Cloud Functions (Admin SDK).
+    // Clients can never write status, *VerifiedAt, verifiedHours, review,
+    // role, linkedEntityId or operation documents.
+    // ---------------------------------------------------------------
+
+    function signedIn() { return request.auth != null; }
+
+    function isOwnDoc(uid) { return request.auth.uid == uid; }
+
+    // A student is linked to the request when students/{studentId}.uid == uid.
+    function isLinkedStudent(studentId) {
+      return signedIn() && get(/databases/$(database)/documents/students/$(studentId)).data.uid == request.auth.uid;
+    }
+
+    // Everyone may read directory + assignment records; none may write them
+    // (directory linkage and assignments are institution-admin, server side).
+    match /students/{studentId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /supervisors/{supervisorId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /locations/{locationId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    match /assignments/{assignmentId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+
+    // users/{uid} — read-own-only; role/status/link mutation is server-only.
+    match /users/{uid} {
+      allow read: if signedIn() && isOwnDoc(uid);
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // Attendance day sessions. A student may read their own; supervisors'
+    // reads route through Functions (myQueue/getEvidence) — the two-hop
+    // supervisor-scope query is not expressible in rules without
+    // denormalization, so it is deliberately kept server-side.
+    match /attendance/{studentId}/{month}/{day} {
+      allow read: if isLinkedStudent(studentId);
+      allow write: if false;
+    }
+
+    // Idempotency ledger — never exposed to clients.
+    match /operations/{uid}/{month}/{requestId} {
+      allow read, write: if false;
+    }
+
+    // Attendance samples (server-written passive GPS fixes). Readable only by
+    // the owning student and by supervisors/auditors via Functions.
+    match /attendanceSamples/{studentId}/{dateKey}/{sampleId} {
+      allow read: if isLinkedStudent(studentId);
+      allow write: if false;
+    }
+
+    // Audit trail — server-only, append-only. Readable only by admin via
+    // Functions; clients may never read or write it directly.
+    match /auditLogs/{auditId} {
+      allow read, write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

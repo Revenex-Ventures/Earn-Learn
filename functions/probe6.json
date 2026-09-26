@@ -1,0 +1,150 @@
+{
+  "env": {
+    "GCLOUD_PROJECT": "earnandlearn-2eeea",
+    "FIRESTORE_EMULATOR_HOST": "127.0.0.1:8080",
+    "FIREBASE_AUTH_EMULATOR_HOST": "127.0.0.1:9099",
+    "FIREBASE_STORAGE_EMULATOR_HOST": null,
+    "FIREBASE_FUNCTIONS_HOST": null,
+    "FIREBASE_FUNCTIONS_PORT": null,
+    "ALLOW_SEEDS": "1"
+  },
+  "seed": {
+    "written": {
+      "locations": 1,
+      "supervisors": 1,
+      "students": 2,
+      "assignments": 2,
+      "users": 5,
+      "accessAllowlist": 6,
+      "auth": 8
+    }
+  },
+  "allowlist": {
+    "id": "synthetic.one@avcoe.example.edu",
+    "normalizedEmail": "synthetic.one@avcoe.example.edu",
+    "email": "synthetic.one@avcoe.example.edu",
+    "personId": "STU-9001",
+    "role": "student",
+    "name": "Synthetic Student One",
+    "source": "seed",
+    "sourceRow": 2,
+    "status": "active",
+    "createdAt": "2026-09-20T17:40:47.569Z",
+    "updatedAt": "2026-09-20T17:40:47.569Z"
+  },
+  "authUser": {
+    "uid": "auth-stu-001",
+    "email": "synthetic.one@avcoe.example.edu",
+    "emailVerified": true,
+    "disabled": false
+  },
+  "bootstrapStudent": null,
+  "userDocAfter": {
+    "uid": "auth-stu-001",
+    "email": "synthetic.one@avcoe.example.edu",
+    "emailNormalized": "synthetic.one@avcoe.example.edu",
+    "emailVerified": true,
+    "role": "student",
+    "personId": "STU-9001",
+    "status": "active",
+    "linkedEntityId": "STU-9001",
+    "displayName": "Synthetic Student One",
+    "photoUrl": null,
+    "createdAt": "2026-09-20T17:40:47.569Z",
+    "updatedAt": {
+      "_seconds": 1789926054,
+      "_nanoseconds": 205000000
+    },
+    "lastLoginAt": {
+      "_seconds": 1789926054,
+      "_nanoseconds": 205000000
+    }
+  },
+  "negativePaths": {
+    "unknown": {
+      "uid": "auth-stu-unknown",
+      "signInOk": true,
+      "status": 404,
+      "rawText": "{\"error\":{\"details\":{\"kind\":\"account-not-registered\"},\"message\":\"This account is not on the approved roster — access is blocked.\",\"status\":\"NOT_FOUND\"}}",
+      "parsed": {
+        "error": {
+          "details": {
+            "kind": "account-not-registered"
+          },
+          "message": "This account is not on the approved roster — access is blocked.",
+          "status": "NOT_FOUND"
+        }
+      }
+    },
+    "unverified": {
+      "uid": "auth-stu-unverified",
+      "signInOk": true,
+      "status": 400,
+      "rawText": "{\"error\":{\"details\":{\"kind\":\"failed-precondition\"},\"message\":\"The Google account email is not verified; verification is required before access.\",\"status\":\"FAILED_PRECONDITION\"}}",
+      "parsed": {
+        "error": {
+          "details": {
+            "kind": "failed-precondition"
+          },
+          "message": "The Google account email is not verified; verification is required before access.",
+          "status": "FAILED_PRECONDITION"
+        }
+      }
+    },
+    "inactive": {
+      "uid": "auth-stu-inactive",
+      "signInOk": true,
+      "status": 400,
+      "rawText": "{\"error\":{\"details\":{\"kind\":\"failed-precondition\"},\"message\":\"This account is not approved for access.\",\"status\":\"FAILED_PRECONDITION\"}}",
+      "parsed": {
+        "error": {
+          "details": {
+            "kind": "failed-precondition"
+          },
+          "message": "This account is not approved for access.",
+          "status": "FAILED_PRECONDITION"
+        }
+      }
+    },
+    "student": {
+      "uid": "auth-stu-001",
+      "signInOk": true,
+      "status": 200,
+      "rawText": "{\"result\":{\"ok\":true,\"data\":{\"acknowledged\":true,\"registered\":true,\"created\":false,\"uid\":\"auth-stu-001\",\"role\":\"student\",\"personId\":\"STU-9001\",\"status\":\"active\"}}}",
+      "parsed": {
+        "result": {
+          "ok": true,
+          "data": {
+            "acknowledged": true,
+            "registered": true,
+            "created": false,
+            "uid": "auth-stu-001",
+            "role": "student",
+            "personId": "STU-9001",
+            "status": "active"
+          }
+        }
+      }
+    }
+  },
+  "spoofedRole": {
+    "url": "http://127.0.0.1:5001/earnandlearn-2eeea/asia-south1/bootstrapUser",
+    "status": 200,
+    "rawText": "{\"result\":{\"ok\":true,\"data\":{\"acknowledged\":true,\"registered\":true,\"created\":false,\"uid\":\"auth-stu-002\",\"role\":\"student\",\"personId\":\"STU-9002\",\"status\":\"active\"}}}",
+    "parsed": {
+      "result": {
+        "ok": true,
+        "data": {
+          "acknowledged": true,
+          "registered": true,
+          "created": false,
+          "uid": "auth-stu-002",
+          "role": "student",
+          "personId": "STU-9002",
+          "status": "active"
+        }
+      }
+    }
+  },
+  "err": null
+}

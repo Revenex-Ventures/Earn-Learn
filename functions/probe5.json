@@ -1,0 +1,19 @@
+{
+  "status": 200,
+  "rawText": "{\"result\":{\"ok\":true,\"data\":{\"acknowledged\":true,\"registered\":true,\"created\":false,\"uid\":\"auth-stu-001\",\"role\":\"student\",\"personId\":\"STU-9001\",\"status\":\"active\"}}}",
+  "parsed": {
+    "result": {
+      "ok": true,
+      "data": {
+        "acknowledged": true,
+        "registered": true,
+        "created": false,
+        "uid": "auth-stu-001",
+        "role": "student",
+        "personId": "STU-9001",
+        "status": "active"
+      }
+    }
+  },
+  "err": null
+}

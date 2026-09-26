@@ -1,0 +1,8 @@
+{
+  "status": null,
+  "rawText": null,
+  "parsed": null,
+  "err": "TypeError: Cannot read properties of undefined (reading 'createUser')",
+  "allowlistExists": null,
+  "usersState": null
+}

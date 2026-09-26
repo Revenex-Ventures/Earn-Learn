@@ -1,0 +1,22 @@
+{
+  "name": "earn-and-learn-functions",
+  "description": "Earn & Learn Cloud Functions — Stage 2A attendance evidence flow (emulator-first, no live deploy).",
+  "private": true,
+  "engines": {
+    "node": "20"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 \"test/unit/*.test.js\"",
+    "test:all": "node --test --test-concurrency=1 \"test/unit/*.test.js\" \"test/integration/*.test.js\" \"test/rules/*.test.js\"",
+    "test:emulator": "set ALLOW_SEEDS=1&& set EMULATOR_INTEGRATION=1&& firebase emulators:exec --only auth,firestore,storage,functions \"node --test --test-concurrency=1 test/unit/*.test.js test/integration/*.test.js test/rules/*.test.js\""
+  },
+  "dependencies": {
+    "exceljs": "^4.4.0",
+    "firebase-admin": "^12.7.0",
+    "firebase-functions": "^5.1.0"
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1"
+  }
+}

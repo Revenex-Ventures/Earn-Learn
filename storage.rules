@@ -1,0 +1,24 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Evidence is immutable: objects live at
+    // evidence/{uid}/{YYYYMMDD}/{requestId}_{checkin|checkout}.jpg and can
+    // only be created by the owning student (first write wins).
+    // Supervisor evidence access is via the attendance.getEvidence callable
+    // (short-lived signed URLs) — no direct client reads.
+    match /evidence/{userUid}/{date}/{fileName} {
+      allow read: if false;
+      allow create: if request.auth != null
+        && request.auth.uid == userUid
+        && resource == null
+        && request.resource != null
+        && request.resource.size < 8 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow update, delete: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
