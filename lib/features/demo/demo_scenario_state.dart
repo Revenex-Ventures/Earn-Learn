@@ -141,18 +141,18 @@ class DemoScenarioNotifier extends StateNotifier<DemoScenarioState> {
     const student = Student(
       id: 'DEMO-STU-001',
       name: 'Demo Student',
-      rollNumber: '22CS999',
+      rollNumber: 'EL2627-DEMO',
       department: 'Computer Engineering',
       className: 'TE-A',
       contact: '+91 98765 43210',
-      email: 'demo.student@avcoe.org',
+      email: 'demo.student@avcoe.edu.in',
       status: AccountStatus.active,
     );
 
     const supervisor = Supervisor(
       id: 'DEMO-SV-001',
       name: 'Demo Supervisor',
-      email: 'demo.supervisor@avcoe.org',
+      email: 'demo.supervisor@avcoe.edu.in',
       contact: '+91 98220 12345',
       assignedLocationIds: ['DEMO-LOC-001'],
       status: SupervisorStatus.onDuty,

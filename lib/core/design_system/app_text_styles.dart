@@ -128,6 +128,16 @@ class AppTextStyles {
     height: 1.2,
   );
 
+  /// Space Grotesk at body size — for measured values that sit inline with
+  /// interface text (check-in/out times, Earn & Learn IDs, small counts).
+  static const statInline = TextStyle(
+    fontFamily: monoFamily,
+    fontSize: 13,
+    fontWeight: FontWeight.w600,
+    color: AppColors.ink,
+    height: 1.35,
+  );
+
   static const currencyMedium = TextStyle(
     fontFamily: monoFamily,
     fontSize: 20,

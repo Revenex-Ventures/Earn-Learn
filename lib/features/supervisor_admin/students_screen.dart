@@ -83,7 +83,7 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             SearchFilterBar(
-              hintText: 'Search by name or roll number',
+              hintText: 'Search by name or Earn & Learn ID',
               initialQuery: _query,
               onQueryChanged: (value) => setState(() => _query = value),
               filters: options,
@@ -97,7 +97,7 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
                 icon: Icons.person_search_outlined,
                 title: 'No students found',
                 message:
-                    'Try a different name, roll number or department filter.',
+                    'Try a different name, Earn & Learn ID or department filter.',
               )
             else
               for (var i = 0; i < filtered.length; i++) ...[

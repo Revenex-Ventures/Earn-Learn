@@ -364,7 +364,7 @@ class _StudentOnboardingCardState extends State<_StudentOnboardingCard> {
           TextField(
             controller: _rollController,
             decoration: const InputDecoration(
-              labelText: 'Student ID / Roll No',
+              labelText: 'Earn & Learn ID',
               border: OutlineInputBorder(),
               isDense: true,
             ),
@@ -941,7 +941,7 @@ class _SupervisorReviewCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildRow('Candidate', state.student.name),
-                _buildRow('Roll No', state.student.rollNumber),
+                _buildRow('Earn & Learn ID', state.student.rollNumber),
                 _buildRow('Workplace', state.location.name),
                 _buildRow('Check-In Time', '${session?.checkInVerifiedAt?.hour}:${session?.checkInVerifiedAt?.minute.toString().padLeft(2, '0')}'),
                 _buildRow('Check-Out Time', '${session?.checkOutVerifiedAt?.hour}:${session?.checkOutVerifiedAt?.minute.toString().padLeft(2, '0')}'),

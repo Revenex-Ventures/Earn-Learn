@@ -155,8 +155,8 @@ class _StudentProfileViewState extends ConsumerState<_StudentProfileView> {
                   Text(student.name, style: AppTextStyles.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
                   const SizedBox(height: 4),
                   Text(
-                    student.rollNumber,
-                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.slate, fontWeight: FontWeight.w600),
+                    'Earn & Learn ID · ${student.rollNumber}',
+                    style: AppTextStyles.statInline.copyWith(color: AppColors.slate),
                   ),
                   const SizedBox(height: 2),
                   Text(
@@ -257,7 +257,7 @@ class _StudentProfileViewState extends ConsumerState<_StudentProfileView> {
                   _ProfileNavRow(
                     icon: Icons.help_outline,
                     title: 'Help & Support',
-                    subtitle: 'SDO Office · sdo@avcoe.org',
+                    subtitle: 'SDO Office · sdo@avcoe.edu.in',
                     onTap: () => _snack(context, 'Student Development Office (SDO)'),
                   ),
                   const Divider(color: AppColors.divider, height: 1),
@@ -451,15 +451,16 @@ class _StudentProfileEditFormState extends ConsumerState<_StudentProfileEditForm
               _field(
                 controller: _nameCtrl,
                 label: 'Full Name *',
-                hint: 'e.g. Rahul Sharma',
+                hint: 'As printed on your allotment letter',
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
               ),
               const SizedBox(height: AppSpacing.md),
               _field(
                 controller: _rollCtrl,
-                label: 'Student ID / Roll Number *',
-                hint: 'e.g. DEMO-STU-001',
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Roll Number is required' : null,
+                label: 'Earn & Learn ID *',
+                hint: 'e.g. EL2627-052',
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Earn & Learn ID is required' : null,
               ),
             ],
           ),
@@ -535,7 +536,7 @@ class _StudentProfileEditFormState extends ConsumerState<_StudentProfileEditForm
                           child: _field(
                             controller: _emailCtrl,
                             label: 'Email *',
-                            hint: 'e.g. student@avcoe.org',
+                            hint: 'e.g. student@avcoe.edu.in',
                             keyboardType: TextInputType.emailAddress,
                             validator: (v) {
                               if (v == null || v.trim().isEmpty) return 'Email is required';

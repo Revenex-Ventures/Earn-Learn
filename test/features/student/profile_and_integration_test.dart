@@ -101,7 +101,7 @@ void main() {
 
       // Verify view mode
       expect(find.text('Prasanna Auti'), findsWidgets);
-      expect(find.text('TE-COMP-01'), findsOneWidget);
+      expect(find.text('Earn & Learn ID · TE-COMP-01'), findsOneWidget);
       expect(find.text('Computer Engineering'), findsWidgets);
       expect(find.text('Amrutvahini College of Engineering'), findsWidgets);
       expect(find.text('Edit Details'), findsOneWidget);
