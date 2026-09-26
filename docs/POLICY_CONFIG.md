@@ -73,10 +73,12 @@ Aggregate planned duty = 138 h/day across all 68 assignments.
 - `avcoe_dataset_test.dart` asserts **every** assignment `maxMonthlyHours == 40`.
 - **Semantics are unresolved** (hard vs soft, calendar-month vs rolling window, server-side enforcement location) → Section B items 21–22.
 
-### A.6 Institutional calendar rule as recorded (source: `mock_data.dart` comment + `mockMonthCalendar`)
+### A.6 Institutional calendar rule as implemented (`mockMonthCalendar`)
 
 - Recorded institutional context: **"Sundays Off, Paid Festivals, Holidays."**
-- Only the **Sunday offDay** generation reflects that rule. The specific "State Holiday" (2nd weekday) and fixed on-the-24th "College Foundation Day" (`isPaid: true`) are **fabricated demo dates** — production must replace them with the real 2026 ledger (Section B items 18–19).
+- Implemented: the **Sunday `offDay`** rule, plus the three fixed gazetted national holidays — Republic Day (26 Jan), Independence Day (15 Aug), Gandhi Jayanti (2 Oct) — surfaced only in the month they fall in. `test/calendar_rules_test.dart` locks this in.
+- Removed: the "State Holiday" (2nd weekday) and fixed on-the-24th "College Foundation Day" (`isPaid: true`) were **fabricated demo dates** and are gone rather than relocated. An unverified date rendered to an administrator as an institutional fact is worse than an absent one, so any other closure now honestly reports as not recorded until the college's ledger is written behind `calendarRepositoryProvider` (Section B items 18–19).
+- The 40 h/month ceiling is a policy value (`Assignment.maxMonthlyHours` / `AppPolicy`), never a calendar event.
 
 ### A.7 Tooling facts that constrict import
 
@@ -108,8 +110,8 @@ Every row is an unresolved production value. The "Current known value" column st
 | 15 | Leave rules | none (LeaveRequest model exists, no policy) | `lib/core/models/leave_request.dart` | MISSING | Notice window, max days, paid/unpaid, how leave interacts with duty days | leave workflow (Stage 6) |
 | 16 | Leave approval authority | none | — | MISSING | Who approves student leave (zone supervisor vs SDO) | leave function ACL |
 | 17 | Make-up duty rules | none | — | MISSING | Whether missed duty can be compensated, and caps | attendance reconciliation |
-| 18 | Holiday/festival calendar for 2026 | "State Holiday" (2nd weekday) + "Foundation Day 24th" are **fabricated** dates | `mockMonthCalendar` (demo) | MISSING | Official 2026 holiday/festival date list | `calendar` docs (admin-written) |
-| 19 | Paid-holiday rules | `isPaid: true` only on fabricated Foundation Day | `mockMonthCalendar` (demo) | PLACEHOLDER | Which holidays count as paid toward hours/days | payroll eligible-days + hours credit |
+| 18 | Holiday/festival calendar for 2026 | Sundays + the 3 fixed national holidays are seeded; any college-specific closure is absent | `mockMonthCalendar` | PARTIAL | Official 2026 college holiday/festival date list beyond the national three | `calendar` docs (admin-written) |
+| 19 | Paid-holiday rules | no event carries `isPaid: true`; the only prior flag sat on a fabricated date | `mockMonthCalendar` | MISSING | Which holidays count as paid toward hours/days | payroll eligible-days + hours credit |
 | 20 | Saturday policy | not modeled (Sundays off only rule) | `mockMonthCalendar` | MISSING | Are Saturdays working days for hostel sections | calendar + recurrence |
 | 21 | 40-hour ceiling semantics: hard vs soft | `40` as model default only; test requires each assignment = 40 | `assignment.dart`, `avcoe_dataset_test.dart` | CONFIRMED (value) / semantics MISSING | Hard cap (reject beyond) or soft (flag only)? | Stage 4 check-out enforcer |
 | 22 | Whether 40 hours is calendar-month based | none | — | MISSING | Calendar month, or rolling 30-day window? | hours accumulator window |
@@ -123,5 +125,5 @@ Every row is an unresolved production value. The "Current known value" column st
 | 30 | Any other value marked CFG/? during audit | saturation: see every row above | audit trail from this file | — | Free-form items the college adds (e.g., working-hour sweep time, duty-swap rules) | affected modules |
 
 ### B.1 Hard rules carried from audit (do not convert to defaults)
-- ₹150/day, 94.2%, `radiusMeters = 50`, fabricated State Holiday/Foundation Day, `@avcoe.org` placeholder emails and their sequential `+91 98224 11xxx` placeholder phone numbers in the supervisor seed, and demo payroll amounts must **not** be treated as confirmed policy anywhere.
+- ₹150/day, 94.2%, `radiusMeters = 50`, `@avcoe.org` placeholder emails and their sequential `+91 98224 11xxx` placeholder phone numbers in the supervisor seed, and demo payroll amounts must **not** be treated as confirmed policy anywhere. The fabricated State Holiday/Foundation Day dates have since been removed from `mockMonthCalendar` (WI-4) and must not return.
 - Missing cells (15 null student contacts) stay null; import never guesses.

@@ -159,15 +159,40 @@ final ShiftWindow mockEveningShift = ShiftWindow(
 );
 
 // -----------------------------------------------------------------------------
-// Calendar Events (Institutional Rules: Sundays Off, Paid Festivals, Holidays)
+// Calendar Events — official programme rules only.
+//
+// Two rules are real and applied here:
+//   1. every Sunday is a weekly off day for the scheme;
+//   2. the three fixed national holidays (Republic Day, Independence Day,
+//      Gandhi Jayanti) are gazetted public holidays.
+//
+// Nothing else is seeded. The previously hard-coded 'State Holiday' (2nd
+// weekday) and 'College Foundation Day' (the 24th, marked paid) were invented
+// demo dates and have been removed rather than relocated — an unverified date
+// shown to an administrator as an institutional fact is worse than an absent
+// one. The college's own holiday ledger belongs in Firestore behind
+// `calendarRepositoryProvider`, which today has no AppFlavor branch; until that
+// exists the honest answer for any other closure is that it is not recorded.
+//
+// The 40 h/month ceiling is a policy value, not a calendar event: it is
+// enforced through Assignment.maxMonthlyHours and AppPolicy.
 // -----------------------------------------------------------------------------
+
+/// Fixed national holidays as (month, day, label). Surfaced only in the month
+/// in which they actually fall.
+const List<(int month, int day, String label)> mockNationalHolidays = [
+  (DateTime.january, 26, 'Republic Day'),
+  (DateTime.august, 15, 'Independence Day'),
+  (DateTime.october, 2, 'Gandhi Jayanti'),
+];
+
 List<CalendarEvent> mockMonthCalendar(DateTime now) {
   final days = DateTime(now.year, now.month + 1, 0).day;
   final events = <CalendarEvent>[];
 
-  var weekdaysSeen = 0;
   for (var day = 1; day <= days; day++) {
     final date = DateTime(now.year, now.month, day);
+
     if (date.weekday == DateTime.sunday) {
       events.add(CalendarEvent(
         date: date,
@@ -176,30 +201,22 @@ List<CalendarEvent> mockMonthCalendar(DateTime now) {
       ));
       continue;
     }
-    weekdaysSeen++;
-    if (weekdaysSeen == 2) {
-      events.add(CalendarEvent(
-        date: date,
-        label: 'State Holiday',
-        type: CalendarEventType.holiday,
-      ));
-    }
-  }
 
-  if (days >= 24) {
-    final fest = DateTime(now.year, now.month, 24);
-    events.add(CalendarEvent(
-      date: fest,
-      label: 'College Foundation Day',
-      type: CalendarEventType.festival,
-      isPaid: true,
-    ));
+    for (final holiday in mockNationalHolidays) {
+      if (holiday.$1 == now.month && holiday.$2 == day) {
+        events.add(CalendarEvent(
+          date: date,
+          label: holiday.$3,
+          type: CalendarEventType.holiday,
+        ));
+      }
+    }
   }
 
   return events;
 }
 
-final List<CalendarEvent> mockCalendar = mockMonthCalendar(mockNow);
+List<CalendarEvent> get mockCalendar => mockMonthCalendar(mockNow);
 
 // -----------------------------------------------------------------------------
 // Attendance Records for the default student (3h daily duty)
