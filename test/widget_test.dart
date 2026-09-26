@@ -15,6 +15,6 @@ void main() {
     // Fast-forward 2 seconds for splash timer
     await tester.pumpAndSettle(const Duration(seconds: 2));
 
-    expect(find.text('Select your role'), findsOneWidget);
+    expect(find.text('Choose Your Role'), findsOneWidget);
   });
 }

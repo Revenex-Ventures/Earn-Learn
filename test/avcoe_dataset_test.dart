@@ -48,9 +48,9 @@ void main() {
 
     test('data quality report validates strict institutional fidelity', () {
       final report = DataQualityReport.generate();
-      expect(report['totalStudents'], 68);
-      expect(report['totalLocations'], 15);
-      expect(report['totalSupervisors'], 12);
+      expect(report['totalStudents'], AvcoeSeedData.students.length);
+      expect(report['totalLocations'], AvcoeSeedData.locations.length);
+      expect(report['totalSupervisors'], AvcoeSeedData.supervisors.length);
       expect(report['fidelityStatus'], contains('0 Fabricated Values'));
     });
   });
