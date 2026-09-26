@@ -9,7 +9,7 @@ void main() {
   group('seed roster counts', () {
     test('the workbook snapshot has the authenticated totals', () {
       expect(mockStudents, hasLength(68));
-      expect(mockSupervisors, hasLength(12));
+      expect(mockSupervisors, hasLength(10));
       expect(mockLocations, hasLength(15));
       expect(mockAssignments, hasLength(68));
     });
@@ -27,46 +27,42 @@ void main() {
     List<RosterIssue> byCode(String code) =>
         report.issues.where((i) => i.code == code).toList();
 
-    test('surfaces the 15 missing student contacts as errors', () {
+    test('surfaces the 60 students the sheet leaves without a contact', () {
       final missing = byCode('student-missing-contact');
-      expect(missing, hasLength(15));
+      expect(missing, hasLength(60));
+      // The sheet only records contacts for the 8 office-location students.
       expect(
         missing.map((i) => i.entityId).toSet(),
         {
-          'STU-006',
-          'STU-011',
-          'STU-018',
-          'STU-023',
-          'STU-027',
-          'STU-032',
-          'STU-036',
-          'STU-040',
-          'STU-044',
-          'STU-048',
-          'STU-052',
-          'STU-056',
-          'STU-059',
-          'STU-063',
-          'STU-067',
+          for (final s in mockStudents)
+            if (s.contact == null) s.id,
         },
       );
     });
 
-    test('fails the core checks until contacts are completed', () {
+    test('fails core checks while the recorded gaps are unresolved', () {
       expect(report.passesCoreChecks, isFalse);
-      expect(report.count(RosterIssueSeverity.error),
-          byCode('student-missing-contact').length);
+      // 60 contacts + 10 supervisor emails + 3 blank shifts + 4 unnamed
+      // supervisors. Every one is a real gap in the official sheet.
+      expect(report.count(RosterIssueSeverity.error), 77);
+      expect(byCode('student-missing-contact'), hasLength(60));
+      expect(byCode('supervisor-missing-email'), hasLength(10));
+      expect(byCode('assignment-missing-windows'), hasLength(3));
+      expect(byCode('assignment-unassigned-supervisor'), hasLength(4));
     });
 
     test('every student and supervisor still needs an account link', () {
+      // Only STU-001 and SV-01 are bound to the demo identities.
       expect(byCode('student-unlinked-account'), hasLength(67));
-      expect(byCode('supervisor-unlinked-account'), hasLength(11));
+      expect(byCode('supervisor-unlinked-account'), hasLength(9));
     });
 
-    test('flags the off-duty supervisor still carrying students', () {
-      final offDuty = byCode('offduty-supervisor-with-students');
-      expect(offDuty, hasLength(1));
-      expect(offDuty.single.entityId, 'SV-10');
+    test('no supervisor is off duty while carrying students', () {
+      expect(
+        mockSupervisors.every((s) => s.status == SupervisorStatus.onDuty),
+        true,
+      );
+      expect(byCode('offduty-supervisor-with-students'), isEmpty);
     });
 
     test('all locations still need official coordinates', () {
@@ -78,7 +74,32 @@ void main() {
       expect(byCode('assignment-unknown-location'), isEmpty);
       expect(byCode('assignment-unknown-supervisor'), isEmpty);
       expect(byCode('assignment-missing-work-description'), isEmpty);
-      expect(byCode('assignment-missing-windows'), isEmpty);
+      expect(byCode('supervisor-unknown-location'), isEmpty);
+    });
+
+    test('blank library shifts are reported, never silently accepted', () {
+      final blank = byCode('assignment-missing-windows');
+      expect(
+        blank.map((i) => i.entityId).toSet(),
+        {'ASN-057', 'ASN-058', 'ASN-059'},
+      );
+    });
+
+    test('allotments the sheet leaves unassigned name the affected locations', () {
+      final unassigned = byCode('assignment-unassigned-supervisor');
+      expect(
+        unassigned.map((i) => i.entityId).toSet(),
+        {'ASN-060', 'ASN-064', 'ASN-065', 'ASN-066'},
+      );
+      final locationsOf = {
+        for (final a in mockAssignments)
+          if (a.supervisorId.isEmpty) a.id: a.locationName,
+      };
+      expect(locationsOf.values.toSet(), {
+        'Civil Lab',
+        'Dispensary',
+        'Incubation',
+      });
     });
 
     test('all 68 students are assigned', () {
@@ -89,9 +110,9 @@ void main() {
       expect(byCode('duplicate-roll-number'), isEmpty);
     });
 
-    test('supervisor emails are recorded but await college confirmation', () {
-      expect(byCode('supervisor-email-unconfirmed'), hasLength(12));
-      expect(byCode('supervisor-missing-email'), isEmpty);
+    test('no supervisor email is on record in the official sheet', () {
+      expect(byCode('supervisor-missing-email'), hasLength(10));
+      expect(byCode('supervisor-email-unconfirmed'), isEmpty);
     });
   });
 

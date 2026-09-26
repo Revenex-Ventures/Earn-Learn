@@ -38,10 +38,12 @@ final List<Location> mockLocationsWithCoverage = [
 /// Server-side policy object (institution), 40h ceiling is a configurable value.
 const AppPolicy mockAppPolicy = AppPolicy(monthlyMaxHours: 40);
 
-/// Default student for demo / student portal (STU-001, Library).
+/// Default student for demo / student portal. STU-001 is stationed at Kalsubai
+/// Hostel (Old) under Prof. V.S. Ubale, per the allotment sheet.
 final Student mockCurrentStudent = mockStudents.first;
 
-/// Assigned supervisor used by supervisor portals (SV-01, Library).
+/// Assigned supervisor used by supervisor portals (SV-01, Mr. K.J. Dhage,
+/// Library) — the first named supervisor on the sheet.
 final Supervisor mockCurrentSupervisor = mockSupervisors.first;
 
 /// The real Student Development Officer who administers the scheme. Used as

@@ -16,9 +16,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text("TODAY'S DUTY"), findsOneWidget);
-    expect(find.text('Library'), findsWidgets);
+    expect(find.text('Kalsubai Hostel (Old)'), findsWidgets);
     expect(find.text('Attendance'), findsOneWidget);
-    expect(find.textContaining('Mayur'), findsWidgets);
+    // The greeting shows the first token of the sheet name. The official
+    // listing is surname-first for some students, so this reads "DHANWATE".
+    expect(find.textContaining('DHANWATE'), findsWidgets);
     expect(find.text('Monthly hours'), findsOneWidget);
     expect(find.textContaining('used'), findsOneWidget);
     expect(find.textContaining('remaining'), findsWidgets);

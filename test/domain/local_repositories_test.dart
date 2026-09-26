@@ -10,9 +10,11 @@ void main() {
   group('local repositories (Stage 1B dev wiring)', () {
     test('student repository reads the workbook seed', () async {
       final repo = LocalStudentRepository(mockStudents);
-      final mayur = await repo.byId('STU-001');
-      expect(mayur, isNotNull);
-      expect(mayur!.name, 'Mayur Anil Gaikwad');
+      final first = await repo.byId('STU-001');
+      expect(first, isNotNull);
+      expect(first!.name, 'DHANWATE RUTUJA NITIN');
+      expect(first.rollNumber, 'EL2627-001');
+      expect(first.contact, isNull, reason: 'the sheet records no contact');
       expect(await repo.byUid('missing'), isNull);
       expect(await repo.all(), hasLength(68));
     });
@@ -22,7 +24,10 @@ void main() {
       final repo = LocalAssignmentRepository(mockAssignments);
       final assignment = await repo.forStudent('STU-001');
       expect(assignment, isNotNull);
-      expect(assignment!.locationId, 'LOC-08');
+      expect(assignment!.locationId, 'LOC-01');
+      expect(assignment.locationName, 'Kalsubai Hostel (Old)');
+      expect(assignment.supervisorId, 'SV-02');
+      expect(assignment.plannedHoursPerDay, 3.0);
       expect(await repo.forStudent('STU-999'), isNull);
     });
 

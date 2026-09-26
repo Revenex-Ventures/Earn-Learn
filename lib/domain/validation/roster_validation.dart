@@ -228,7 +228,20 @@ RosterValidationReport validateRoster({
         entityId: a.id,
       );
     }
-    if (!supervisorById.containsKey(a.supervisorId)) {
+    if (a.supervisorId.isEmpty) {
+      // The allotment sheet leaves a few locations without a named supervisor.
+      // An empty id is the honest encoding of "Not assigned" and must never be
+      // reported as a dangling reference; it is surfaced separately so the
+      // college can fill the gap before release.
+      add(
+        code: 'assignment-unassigned-supervisor',
+        severity: RosterIssueSeverity.error,
+        message: 'No supervisor is named for this allotment, so attendance '
+            'cannot be approved.',
+        entityType: 'assignment',
+        entityId: a.id,
+      );
+    } else if (!supervisorById.containsKey(a.supervisorId)) {
       add(
         code: 'assignment-unknown-supervisor',
         severity: RosterIssueSeverity.error,
