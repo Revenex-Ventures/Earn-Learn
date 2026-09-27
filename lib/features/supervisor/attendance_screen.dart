@@ -136,33 +136,49 @@ class _SupervisorAttendanceScreenState
   }
 
   void _openReview(VerificationItem item) {
-    if (!AppFlavor.useFirebase) {
-      _snack('Review ${item.studentName} — ${item.type.label}');
-      return;
-    }
     final gateway = ref.read(attendanceGatewayProvider);
+    final useServerEvidence = AppFlavor.useFirebase;
+    ApprovalStatus? outcome;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       builder: (sheetContext) => ReviewSheet(
         item: item,
-        evidenceUrlBuilder: (kind) => gateway.evidenceUrl(
-          sessionId: item.id,
-          studentId: item.studentId,
-          kind: kind,
-        ),
-        onSubmit: (decision, note) => gateway.review(
-          sessionId: item.id,
-          studentId: item.studentId,
-          decision: decision,
-          note: note,
-        ),
+        evidenceUrlBuilder: useServerEvidence
+            ? (kind) => gateway.evidenceUrl(
+                  sessionId: item.id,
+                  studentId: item.studentId,
+                  kind: kind,
+                )
+            : null,
+        onSubmit: (decision, note) async {
+          final result = await gateway.review(
+            sessionId: item.id,
+            studentId: item.studentId,
+            decision: decision,
+            note: note,
+          );
+          outcome = result.review;
+          return result;
+        },
       ),
     ).then((_) {
-      if (mounted) ref.invalidate(_reviewItemsProvider);
+      if (!mounted) return;
+      ref.invalidate(_reviewItemsProvider);
+      final decided = outcome;
+      if (decided != null) {
+        _snack(_reviewMessage(item.studentName, decided));
+      }
     });
   }
+
+  String _reviewMessage(String name, ApprovalStatus review) => switch (review) {
+        ApprovalStatus.approved => 'Verified — $name signed off.',
+        ApprovalStatus.flagged => 'Flagged — sent back for another look.',
+        ApprovalStatus.rejected => 'Rejected — $name notified.',
+        ApprovalStatus.pending => 'Saved — still pending.',
+      };
 
   void _snack(String message) {
     ScaffoldMessenger.of(context)

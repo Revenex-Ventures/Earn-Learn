@@ -41,5 +41,29 @@ class VerificationItem {
   /// Timestamp of the underlying check-in/check-out event.
   final DateTime? evidenceTime;
 
+  VerificationItem copyWith({
+    String? id,
+    String? studentName,
+    String? studentId,
+    String? location,
+    VerificationType? type,
+    DateTime? submittedAt,
+    ApprovalStatus? status,
+    String? summary,
+    DateTime? evidenceTime,
+  }) {
+    return VerificationItem(
+      id: id ?? this.id,
+      studentName: studentName ?? this.studentName,
+      studentId: studentId ?? this.studentId,
+      location: location ?? this.location,
+      type: type ?? this.type,
+      submittedAt: submittedAt ?? this.submittedAt,
+      status: status ?? this.status,
+      summary: summary ?? this.summary,
+      evidenceTime: evidenceTime ?? this.evidenceTime,
+    );
+  }
+
   static const String collection = 'verifications';
 }

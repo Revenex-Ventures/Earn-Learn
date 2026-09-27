@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_elevation.dart';
+import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/design_system/app_spacing.dart';
 
@@ -14,6 +16,9 @@ class ContextHeader extends StatelessWidget {
     this.subGreeting,
     this.dateLine,
     this.trailing,
+    this.gradient = false,
+    this.accent,
+    this.gradientPadding,
   });
 
   final String greeting;
@@ -21,10 +26,22 @@ class ContextHeader extends StatelessWidget {
   final String? dateLine;
   final Widget? trailing;
 
+  /// When true, renders as a rounded gradient card with white text and hero elevation.
+  /// Default false preserves the original inline rendering.
+  final bool gradient;
+
+  /// Accent colour for the gradient. Defaults to [AppColors.primary].
+  final Color? accent;
+
+  /// Optional custom padding for the gradient card. Defaults to AppSpacing.lg all around.
+  final EdgeInsetsGeometry? gradientPadding;
+
   @override
   Widget build(BuildContext context) {
     final effectiveDateLine = dateLine ?? _formattedToday();
-    return Row(
+    final effectiveAccent = accent ?? AppColors.primary;
+
+    final content = Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Expanded(
@@ -35,7 +52,7 @@ class ContextHeader extends StatelessWidget {
                 effectiveDateLine.toUpperCase(),
                 style: AppTextStyles.labelSmall.copyWith(
                   letterSpacing: 1.2,
-                  color: AppColors.slate,
+                  color: gradient ? Colors.white.withValues(alpha: 0.85) : AppColors.slate,
                   fontWeight: FontWeight.w600,
                   fontSize: 10,
                 ),
@@ -45,7 +62,7 @@ class ContextHeader extends StatelessWidget {
                 greeting,
                 style: AppTextStyles.headlineMedium.copyWith(
                   fontWeight: FontWeight.w800,
-                  color: AppColors.ink,
+                  color: gradient ? Colors.white : AppColors.ink,
                   letterSpacing: -0.3,
                 ),
               ),
@@ -54,7 +71,7 @@ class ContextHeader extends StatelessWidget {
                 Text(
                   subGreeting!,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.slate,
+                    color: gradient ? Colors.white.withValues(alpha: 0.85) : AppColors.slate,
                   ),
                 ),
               ],
@@ -66,6 +83,21 @@ class ContextHeader extends StatelessWidget {
           trailing!,
         ],
       ],
+    );
+
+    if (!gradient) {
+      return content;
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: gradientPadding ?? const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        gradient: AppColors.accentGradient(effectiveAccent),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppElevation.heroFor(effectiveAccent),
+      ),
+      child: content,
     );
   }
 

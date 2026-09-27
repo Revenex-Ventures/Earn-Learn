@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/models/user_role.dart';
+import '../auth_session.dart';
 
 /// Static holder that persists the active role across in-process widget rebuilds
 /// and provides quick access during activity recreation.
@@ -22,11 +23,13 @@ class RoleSelectorNotifier extends StateNotifier<UserRole?> {
 
   void select(UserRole role) {
     ActiveRoleStore.role = role;
+    AuthSession.role = role;
     state = role;
   }
 
   void clear() {
     ActiveRoleStore.role = null;
+    AuthSession.role = null;
     state = null;
   }
 }

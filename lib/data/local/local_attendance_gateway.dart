@@ -7,6 +7,7 @@ import '../../shared/mock_data/mock_data.dart';
 import '../dev_only.dart';
 import '../firebase/attendance_gateway.dart';
 import 'local_attendance_repository.dart';
+import 'local_review_store.dart';
 
 /// Local in-memory [AttendanceGateway] that enforces the [SessionStateMachine]
 /// and updates the [LocalAttendanceRepository] for live student interaction.
@@ -156,23 +157,40 @@ class LocalAttendanceGateway implements AttendanceGateway {
     required ApprovalStatus decision,
     String? note,
   }) async {
-    final session = _sessions[sessionId];
-    if (session == null) {
-      throw const AttendanceFlowException(
-        AttendanceFlowErrorKind.notFound,
-        'Session not found for review.',
-      );
-    }
+    // Tolerate queue items that were never checked in during this run — the
+    // local queue is served from fixtures, so synthesise a submitted session
+    // and let the state machine guard every transition from there.
+    final base = _sessions[sessionId] ??
+        Session(
+          id: sessionId,
+          studentId: studentId,
+          date: DateTime.now(),
+          windows: const <ShiftWindow>[],
+          status: SessionStatus.submitted,
+        );
+
+    // Approve/reject are only legal from underReview or flagged; move a freshly
+    // submitted item into review first so the machine accepts the decision.
+    final ready = base.status == SessionStatus.submitted &&
+            decision != ApprovalStatus.flagged
+        ? _machine.startReview(base)
+        : base;
 
     final updated = switch (decision) {
-      ApprovalStatus.approved => _machine.approve(session),
-      ApprovalStatus.rejected => _machine.reject(session, reason: note ?? 'Rejected by supervisor.'),
-      ApprovalStatus.flagged => _machine.flag(session, reason: note ?? 'Flagged by supervisor.'),
-      _ => session,
+      ApprovalStatus.approved =>
+        base.status == SessionStatus.approved ? base : _machine.approve(ready),
+      ApprovalStatus.rejected => base.status == SessionStatus.rejected
+          ? base
+          : _machine.reject(ready, reason: note ?? 'Rejected by supervisor.'),
+      ApprovalStatus.flagged => base.status == SessionStatus.flagged
+          ? base
+          : _machine.flag(base, reason: note ?? 'Flagged by supervisor.'),
+      _ => base,
     };
 
     _sessions[sessionId] = updated;
     _repo.submitSession(updated);
+    LocalReviewStore.instance.record(sessionId, updated.review, note: note);
 
     return ReviewResult(
       status: updated.status,

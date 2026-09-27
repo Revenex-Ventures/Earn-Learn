@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_elevation.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -193,78 +194,18 @@ class _SupervisorTodayView extends ConsumerWidget {
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            // Today's Shift Hero Card (AVCOE Deep Green Container)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.avcoeGreen,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.avcoeGreen.withValues(alpha: 0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -10,
-                    bottom: -15,
-                    child: Icon(
-                      Icons.check_circle_outline,
-                      size: 90,
-                      color: AppColors.surface.withValues(alpha: 0.1),
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          const Icon(Icons.access_time, size: 18, color: AppColors.surface),
-                          const SizedBox(width: 8),
-                          Text(
-                            "Today's Shift",
-                            style: AppTextStyles.labelMedium.copyWith(
-                              color: AppColors.surface.withValues(alpha: 0.9),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '8:00 AM – 4:00 PM',
-                        style: AppTextStyles.headlineSmall.copyWith(
-                          color: AppColors.surface,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        children: [
-                          Text(
-                            'Total Students: ',
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: AppColors.surface.withValues(alpha: 0.85),
-                            ),
-                          ),
-                          Text(
-                            '${data.myAssignments.length}',
-                            style: AppTextStyles.labelLarge.copyWith(
-                              color: AppColors.surface,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            // Today's Shift Hero Card (Gold Gradient)
+            ContextHeader(
+              greeting: data.myAssignments.length == 1
+                  ? '${data.myAssignments.length} student on your roster'
+                  : '${data.myAssignments.length} students on your roster',
+              subGreeting: data.myLocations.isEmpty
+                  ? 'No work zones assigned yet'
+                  : 'Across ${data.myLocations.length} work '
+                      '${data.myLocations.length == 1 ? 'zone' : 'zones'}',
+              dateLine: 'Today · ${DateFormat('EEE, d MMM').format(DateTime.now())}',
+              gradient: true,
+              accent: AppColors.gold,
             ),
             const SizedBox(height: AppSpacing.lg),
 
@@ -422,31 +363,51 @@ class _SupervisorTodayView extends ConsumerWidget {
   }
 
   void _openReview(BuildContext context, WidgetRef ref, VerificationItem item) {
-    if (!AppFlavor.useFirebase) {
-      _snack(context, 'Review ${item.studentName} — ${item.type.label}');
-      return;
-    }
     final gateway = ref.read(attendanceGatewayProvider);
+    // Server evidence (signed URLs) only exists on the Firebase build; the
+    // local build shows the neutral evidence placeholder instead of a broken
+    // network image.
+    final useServerEvidence = AppFlavor.useFirebase;
+    ApprovalStatus? outcome;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
       builder: (sheetContext) => ReviewSheet(
         item: item,
-        evidenceUrlBuilder: (kind) => gateway.evidenceUrl(
-          sessionId: item.id,
-          studentId: item.studentId,
-          kind: kind,
-        ),
-        onSubmit: (decision, note) => gateway.review(
-          sessionId: item.id,
-          studentId: item.studentId,
-          decision: decision,
-          note: note,
-        ),
+        evidenceUrlBuilder: useServerEvidence
+            ? (kind) => gateway.evidenceUrl(
+                  sessionId: item.id,
+                  studentId: item.studentId,
+                  kind: kind,
+                )
+            : null,
+        onSubmit: (decision, note) async {
+          final result = await gateway.review(
+            sessionId: item.id,
+            studentId: item.studentId,
+            decision: decision,
+            note: note,
+          );
+          outcome = result.review;
+          return result;
+        },
       ),
-    ).then((_) => ref.invalidate(_supervisorTodayProvider));
+    ).then((_) {
+      ref.invalidate(_supervisorTodayProvider);
+      final decided = outcome;
+      if (decided != null && context.mounted) {
+        _snack(context, _reviewMessage(item.studentName, decided));
+      }
+    });
   }
+
+  String _reviewMessage(String name, ApprovalStatus review) => switch (review) {
+        ApprovalStatus.approved => 'Verified — $name signed off.',
+        ApprovalStatus.flagged => 'Flagged — sent back for another look.',
+        ApprovalStatus.rejected => 'Rejected — $name notified.',
+        ApprovalStatus.pending => 'Saved — still pending.',
+      };
 
   void _snack(BuildContext context, String message) {
     ScaffoldMessenger.of(context)
@@ -474,9 +435,9 @@ class _DutySurface extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
+        gradient: AppColors.surfaceGradient,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppElevation.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,9 +628,9 @@ class _MetricCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
+        gradient: AppColors.surfaceGradient,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppElevation.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -721,13 +682,13 @@ class _SupervisorActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.divider),
+          gradient: AppColors.surfaceGradient,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppElevation.card,
         ),
         child: Row(
           children: [

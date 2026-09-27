@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_elevation.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -73,22 +74,9 @@ class StudentDutyHeroCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(
-          color: isWorking
-              ? AppColors.marigold.withValues(alpha: 0.6)
-              : AppColors.divider,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: isWorking
-                ? AppColors.marigold.withValues(alpha: 0.08)
-                : AppColors.ink.withValues(alpha: 0.04),
-            offset: const Offset(0, 4),
-            blurRadius: 14,
-          ),
-        ],
+        boxShadow: AppElevation.heroFor(AppColors.primaryBright),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +85,7 @@ class StudentDutyHeroCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Flexible(
-                child: EyebrowLabel(text: "Today's Duty"),
+                child: EyebrowLabel(text: "Today's Duty", color: Colors.white),
               ),
               if (isWorking)
                 Flexible(
@@ -107,7 +95,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.marigoldLight,
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Row(
@@ -117,7 +105,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                           width: 6,
                           height: 6,
                           decoration: const BoxDecoration(
-                            color: AppColors.marigold,
+                            color: Colors.white,
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -126,7 +114,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                           child: Text(
                             'ACTIVE SHIFT',
                             style: AppTextStyles.labelSmall.copyWith(
-                              color: AppColors.marigold,
+                              color: Colors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 9,
                             ),
@@ -148,9 +136,9 @@ class StudentDutyHeroCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(location, style: AppTextStyles.titleLarge),
+                    Text(location, style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
                     const SizedBox(height: 2),
-                    Text(shiftLabel, style: AppTextStyles.labelMedium),
+                    Text(shiftLabel, style: AppTextStyles.labelMedium.copyWith(color: Colors.white.withValues(alpha: 0.9))),
                   ],
                 ),
               ),
@@ -160,7 +148,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                   padding: EdgeInsets.only(top: 4),
                   child: Icon(
                     Icons.verified,
-                    color: AppColors.sage,
+                    color: Colors.white,
                     size: 22,
                   ),
                 )
@@ -170,7 +158,7 @@ class StudentDutyHeroCard extends StatelessWidget {
           ),
           if (supervisorName != null || (workDescription != null && workDescription!.isNotEmpty)) ...[
             const SizedBox(height: AppSpacing.md),
-            const Divider(height: 1, color: AppColors.divider),
+            const Divider(height: 1, color: Colors.white),
             const SizedBox(height: AppSpacing.md),
             if (supervisorName != null && supervisorName!.isNotEmpty) ...[
               _MetaRow(
@@ -194,9 +182,9 @@ class StudentDutyHeroCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.all(AppSpacing.md),
               decoration: BoxDecoration(
-                color: AppColors.paper,
+                color: Colors.white.withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppColors.divider),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -207,7 +195,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                       Flexible(
                         child: Text(
                           'ELAPSED SHIFT TIME',
-                          style: AppTextStyles.labelSmall,
+                          style: AppTextStyles.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.85)),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -216,7 +204,7 @@ class StudentDutyHeroCard extends StatelessWidget {
                         child: Text(
                           'Inside Assigned Zone',
                           style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.sage,
+                            color: Colors.white,
                             fontWeight: FontWeight.w600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -227,12 +215,12 @@ class StudentDutyHeroCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     copy.headline,
-                    style: AppTextStyles.statLarge.copyWith(color: AppColors.ink),
+                    style: AppTextStyles.statLarge.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     copy.subline,
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkSoft),
+                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.85)),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Wrap(
@@ -242,12 +230,12 @@ class StudentDutyHeroCard extends StatelessWidget {
                       _SignalChip(
                         icon: Icons.verified_user_outlined,
                         label: 'Selfie Verified',
-                        color: AppColors.sage,
+                        color: Colors.white,
                       ),
                       _SignalChip(
                         icon: Icons.location_on_outlined,
                         label: 'Campus Geo-Lock Active',
-                        color: AppColors.sage,
+                        color: Colors.white,
                       ),
                     ],
                   ),
@@ -263,9 +251,9 @@ class StudentDutyHeroCard extends StatelessWidget {
                 key: ValueKey(state),
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(copy.headline, style: AppTextStyles.statMedium),
+                  Text(copy.headline, style: AppTextStyles.statMedium.copyWith(color: Colors.white)),
                   const SizedBox(height: AppSpacing.xs),
-                  Text(copy.subline, style: AppTextStyles.bodySmall),
+                  Text(copy.subline, style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.85))),
                 ],
               ),
             ),
@@ -303,9 +291,9 @@ class _SignalChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -350,22 +338,23 @@ class _MetaRow extends StatelessWidget {
           height: 28,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: AppColors.paper,
+            color: Colors.white.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Icon(icon, size: 16, color: AppColors.slate),
+          child: Icon(icon, size: 16, color: Colors.white.withValues(alpha: 0.9)),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: AppTextStyles.labelSmall),
+              Text(label, style: AppTextStyles.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.7))),
               const SizedBox(height: 1),
               Text(
                 value,
                 style: AppTextStyles.titleSmall.copyWith(
                   fontWeight: FontWeight.w500,
+                  color: Colors.white,
                 ),
               ),
             ],

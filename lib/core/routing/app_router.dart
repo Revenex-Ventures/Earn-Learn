@@ -1,8 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/auth_session.dart';
+import '../../features/auth/login/login_screen.dart';
 import '../../features/auth/role_selection/role_selection_screen.dart';
 import '../../features/auth/splash_screen.dart';
+import '../../data/app_flavor.dart';
+import '../models/user_role.dart';
 import '../../features/demo/demo_scenario_screen.dart';
 import '../../features/shell/student_shell.dart';
 import '../../features/shell/supervisor_admin_shell.dart';
@@ -36,6 +40,16 @@ import 'route_paths.dart';
 final appRouterProvider = Provider<GoRouter>((ref) {
   final router = GoRouter(
     initialLocation: RoutePaths.splash,
+    // Local-build credential gate: no role shell may be entered unless the
+    // matching role has signed in. In the Firebase build the FirebaseAuthGate
+    // governs access instead, so this redirect is a no-op there.
+    redirect: (context, state) {
+      if (AppFlavor.useFirebase) return null;
+      final section = _protectedSection(state.matchedLocation);
+      if (section == null) return null;
+      if (AuthSession.role == section) return null;
+      return RoutePaths.login(section.name);
+    },
     routes: [
       // Splash screen
       GoRoute(
@@ -49,6 +63,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.auth,
         name: RouteNames.auth,
         builder: (context, state) => const RoleSelectionScreen(),
+      ),
+
+      // Per-role credential gate
+      GoRoute(
+        path: RoutePaths.loginPattern,
+        name: RouteNames.login,
+        builder: (context, state) {
+          final role = _roleFromSegment(state.pathParameters['role']);
+          if (role == null) return const RoleSelectionScreen();
+          return LoginScreen(role: role);
+        },
       ),
 
       // Live isolated end-to-end demo flow
@@ -199,3 +224,33 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   return router;
 });
+
+/// Maps a `/login/:role` path segment to a [UserRole], or null if unknown.
+UserRole? _roleFromSegment(String? segment) {
+  switch (segment) {
+    case 'student':
+      return UserRole.student;
+    case 'supervisor':
+      return UserRole.supervisor;
+    case 'admin':
+      return UserRole.admin;
+    default:
+      return null;
+  }
+}
+
+/// Returns the role that owns [location] if it is a protected shell path,
+/// otherwise null (public paths: splash, auth, login, demo).
+UserRole? _protectedSection(String location) {
+  if (location == RoutePaths.studentHome || location.startsWith('/student/')) {
+    return UserRole.student;
+  }
+  if (location == RoutePaths.supervisorHome ||
+      location.startsWith('/supervisor/')) {
+    return UserRole.supervisor;
+  }
+  if (location == RoutePaths.adminOverview || location.startsWith('/admin/')) {
+    return UserRole.admin;
+  }
+  return null;
+}

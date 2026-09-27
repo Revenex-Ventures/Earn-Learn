@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design_system/app_colors.dart';
+import '../../../core/design_system/app_elevation.dart';
 import '../../../core/design_system/app_radius.dart';
 import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_text_styles.dart';
-import '../../../core/models/user_role.dart';
+import '../../../core/routing/route_paths.dart';
 import '../../../shared/components/brand_header.dart';
-import 'role_selector_provider.dart';
 
 class RoleSelectionScreen extends ConsumerWidget {
   const RoleSelectionScreen({super.key});
@@ -19,190 +19,185 @@ class RoleSelectionScreen extends ConsumerWidget {
     final isCompact = screenWidth < 360;
 
     return Scaffold(
-      backgroundColor: AppColors.paper,
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(
-                horizontal: isCompact ? AppSpacing.md : AppSpacing.xl,
-                vertical: isCompact ? AppSpacing.sm : AppSpacing.md,
-              ),
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight - (isCompact ? 16 : 32),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: AppColors.surfaceGradient,
+        ),
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isCompact ? AppSpacing.md : AppSpacing.xl,
+                  vertical: isCompact ? AppSpacing.sm : AppSpacing.md,
                 ),
-                child: IntrinsicHeight(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // 1. Top Brand Header: Prominent AVCOE Logo (Left) + Bhaurao Patil Portrait (Right)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            AvcoeLogo(height: isCompact ? 48 : 58),
-                            BhauraoPortrait(size: isCompact ? 52 : 64),
-                          ],
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - (isCompact ? 16 : 32),
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Top Brand Header: Prominent AVCOE Logo (Left) + Bhaurao Patil Portrait (Right)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              AvcoeLogo(height: isCompact ? 48 : 58),
+                              BhauraoPortrait(size: isCompact ? 52 : 64),
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.xl),
+                        SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.xl),
 
-                      // 2. Central Title Section
-                      Center(
-                        child: Column(
-                          children: [
-                            Text(
-                              'WELCOME',
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: AppColors.slate,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 2.0,
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'Choose Your Role',
-                              style: AppTextStyles.headlineMedium.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.ink,
-                                fontSize: isCompact ? 22 : 26,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              'Select your role to continue',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.slate,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.xl),
-
-                      // 3. Role Cards: Student, Supervisor, Admin
-                      _RoleTile(
-                        icon: Icons.school_outlined,
-                        title: 'Student',
-                        subtitle: 'Track attendance, assignments and work',
-                        color: AppColors.avcoeGreen,
-                        onTap: () {
-                          ref.read(roleSelectorProvider.notifier).select(UserRole.student);
-                          context.go('/student');
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      _RoleTile(
-                        icon: Icons.people_outline,
-                        title: 'Supervisor',
-                        subtitle: 'Manage students and approvals',
-                        color: AppColors.marigold,
-                        onTap: () {
-                          ref.read(roleSelectorProvider.notifier).select(UserRole.supervisor);
-                          context.go('/supervisor');
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      _RoleTile(
-                        icon: Icons.admin_panel_settings_outlined,
-                        title: 'Admin',
-                        subtitle: 'Oversee operations, records and reports',
-                        color: AppColors.info,
-                        onTap: () {
-                          ref.read(roleSelectorProvider.notifier).select(UserRole.admin);
-                          context.go('/admin');
-                        },
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // 4. Live End-to-End Demo Option
-                      _DemoTile(
-                        onTap: () => context.go('/demo'),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // 5. Information Note
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface,
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: AppColors.divider),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.shield_outlined,
-                              size: 16,
-                              color: AppColors.avcoeGreen,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Text(
-                                'Role selection provides sandbox profile switching. In production, '
-                                'your institutional credentials determine access permissions.',
-                                style: AppTextStyles.bodySmall.copyWith(
+                        // 2. Central Title Section
+                        Center(
+                          child: Column(
+                            children: [
+                              Text(
+                                'WELCOME',
+                                style: AppTextStyles.labelSmall.copyWith(
                                   color: AppColors.slate,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 2.0,
                                   fontSize: 11,
-                                  height: 1.35,
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 6),
+                              Text(
+                                'Choose Your Role',
+                                style: AppTextStyles.headlineMedium.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.ink,
+                                  fontSize: isCompact ? 24 : 28,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Select your role to continue',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.slate,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                        SizedBox(height: isCompact ? AppSpacing.md : AppSpacing.xl),
 
-                      const Spacer(),
-                      const SizedBox(height: AppSpacing.md),
-
-                      // 6. Subtle Institutional Footer Grounding
-                      Center(
-                        child: Column(
-                          children: [
-                            Container(
-                              width: 32,
-                              height: 2,
-                              decoration: BoxDecoration(
-                                color: AppColors.avcoeGreen.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(1),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.xs),
-                            Text(
-                              'AVCOE  |  Earn & Learn',
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: AppColors.slate.withValues(alpha: 0.7),
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 10,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Amrutvahini College of Engineering',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.slate.withValues(alpha: 0.5),
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
+                        // 3. Role Cards: Student, Supervisor, Admin
+                        _RoleTile(
+                          icon: Icons.school_outlined,
+                          title: 'Student',
+                          subtitle: 'Track attendance, assignments and work',
+                          color: AppColors.avcoeGreen,
+                          onTap: () => context.go(RoutePaths.login('student')),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.xs),
-                    ],
+                        const SizedBox(height: AppSpacing.md),
+
+                        _RoleTile(
+                          icon: Icons.people_outline,
+                          title: 'Supervisor',
+                          subtitle: 'Manage students and approvals',
+                          color: AppColors.marigold,
+                          onTap: () => context.go(RoutePaths.login('supervisor')),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        _RoleTile(
+                          icon: Icons.admin_panel_settings_outlined,
+                          title: 'Admin',
+                          subtitle: 'Oversee operations, records and reports',
+                          color: AppColors.info,
+                          onTap: () => context.go(RoutePaths.login('admin')),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // 4. Live End-to-End Demo Option
+                        _DemoTile(
+                          onTap: () => context.go('/demo'),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // 5. Information Note
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm + 2),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.surfaceGradient,
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            boxShadow: AppElevation.card,
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.shield_outlined,
+                                size: 16,
+                                color: AppColors.avcoeGreen,
+                              ),
+                              const SizedBox(width: AppSpacing.sm),
+                              Expanded(
+                                child: Text(
+                                  'Role selection provides sandbox profile switching. In production, '
+                                  'your institutional credentials determine access permissions.',
+                                  style: AppTextStyles.bodySmall.copyWith(
+                                    color: AppColors.slate,
+                                    fontSize: 11,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        const Spacer(),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // 6. Subtle Institutional Footer Grounding
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 32,
+                                height: 2,
+                                decoration: BoxDecoration(
+                                  color: AppColors.avcoeGreen.withValues(alpha: 0.3),
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                'AVCOE  |  Earn & Learn',
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: AppColors.slate.withValues(alpha: 0.7),
+                                  letterSpacing: 1.5,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 10,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Amrutvahini College of Engineering',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.slate.withValues(alpha: 0.5),
+                                  fontSize: 10,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );
@@ -228,37 +223,32 @@ class _RoleTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md + 2,
+            vertical: AppSpacing.lg,
           ),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: AppColors.divider),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.ink.withValues(alpha: 0.02),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
+            gradient: AppColors.accentGradient(color),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: AppElevation.heroFor(color),
           ),
           child: Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                 ),
-                child: Icon(icon, size: 22, color: color),
+                child: Icon(icon, size: 24, color: Colors.white),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -268,15 +258,15 @@ class _RoleTile extends StatelessWidget {
                     Text(
                       title,
                       style: AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.slate,
+                        color: Colors.white.withValues(alpha: 0.85),
                         fontSize: 12,
                       ),
                       maxLines: 2,
@@ -286,10 +276,18 @@ class _RoleTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
-              const Icon(
-                Icons.chevron_right,
-                size: 20,
-                color: AppColors.slate,
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 13,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
               ),
             ],
           ),
@@ -307,20 +305,17 @@ class _DemoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(
-              color: AppColors.marigold.withValues(alpha: 0.4),
-              width: 1.2,
-            ),
-            color: AppColors.marigoldLight.withValues(alpha: 0.3),
+            gradient: AppColors.accentGradient(AppColors.marigold),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            boxShadow: AppElevation.heroFor(AppColors.marigold),
           ),
           child: Row(
             children: [
@@ -328,13 +323,14 @@ class _DemoTile extends StatelessWidget {
                 width: 38,
                 height: 38,
                 decoration: BoxDecoration(
-                  color: AppColors.marigold.withValues(alpha: 0.15),
+                  color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                 ),
                 child: const Icon(
                   Icons.play_circle_fill,
                   size: 20,
-                  color: AppColors.marigold,
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -349,7 +345,7 @@ class _DemoTile extends StatelessWidget {
                             'Live End-to-End Demo',
                             style: AppTextStyles.titleSmall.copyWith(
                               fontWeight: FontWeight.w700,
-                              color: AppColors.ink,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -379,7 +375,7 @@ class _DemoTile extends StatelessWidget {
                       'Student Onboard → Shift → Review → Audit',
                       style: AppTextStyles.bodySmall.copyWith(
                         fontSize: 11,
-                        color: AppColors.slate,
+                        color: Colors.white.withValues(alpha: 0.85),
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -388,10 +384,10 @@ class _DemoTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
-              const Icon(
+              Icon(
                 Icons.arrow_forward_ios,
                 size: 14,
-                color: AppColors.slate,
+                color: Colors.white.withValues(alpha: 0.85),
               ),
             ],
           ),

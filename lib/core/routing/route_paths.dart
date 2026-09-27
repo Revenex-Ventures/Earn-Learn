@@ -6,6 +6,11 @@ class RoutePaths {
   static const auth = '/auth';
   static const demo = '/demo';
 
+  // Credential gate. `loginPattern` is the GoRoute template; `login(seg)`
+  // builds a concrete path where `seg` is a UserRole name (student/supervisor/admin).
+  static const loginPattern = '/login/:role';
+  static String login(String roleSegment) => '/login/$roleSegment';
+
   // Student (Home, Attendance, Assignment, Profile)
   static const studentHome = '/student';
   static const studentAttendance = '/student/attendance';

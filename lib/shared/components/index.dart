@@ -8,6 +8,7 @@ export 'empty_state.dart';
 export 'error_state.dart';
 export 'evidence_rail.dart';
 export 'icon_well.dart';
+export 'identity_row.dart';
 export 'list_row.dart';
 export 'loading_state.dart';
 export 'metric_group.dart';

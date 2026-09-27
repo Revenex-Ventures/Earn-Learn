@@ -5,6 +5,7 @@ class RouteNames {
   static const splash = 'splash';
   static const auth = 'auth';
   static const demo = 'demo';
+  static const login = 'login';
 
   // Student
   static const studentHome = 'studentHome';

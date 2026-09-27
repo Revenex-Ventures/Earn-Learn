@@ -13,6 +13,7 @@ import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
 import '../../shared/mock_data/mock_data.dart';
+import '../auth/auth_session.dart';
 
 final _adminProfileProvider = FutureProvider.autoDispose<UserProfile?>(
     (ref) async {
@@ -62,6 +63,13 @@ class _AdminProfileView extends StatelessWidget {
             ContextHeader(
               greeting: displayName,
               trailing: InitialsAvatar(name: displayName),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            IdentityRow(
+              label: 'Officer email',
+              value: user.email ?? 'Not available',
+              accent: AppColors.info,
+              icon: Icons.admin_panel_settings_outlined,
             ),
             const SizedBox(height: AppSpacing.lg),
             const SectionHeader(
@@ -116,7 +124,10 @@ class _AdminProfileView extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxl),
             PrimaryButton(
               label: 'Sign out',
-              onTap: () => context.go(RoutePaths.auth),
+              onTap: () {
+                AuthSession.signOut();
+                context.go(RoutePaths.auth);
+              },
               isSecondary: true,
               width: double.infinity,
             ),

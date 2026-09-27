@@ -20,6 +20,7 @@ import 'check_in_controller.dart';
 class StudentHomeData {
   const StudentHomeData({
     required this.studentId,
+    required this.rollNumber,
     required this.name,
     required this.location,
     required this.supervisorName,
@@ -38,6 +39,7 @@ class StudentHomeData {
   });
 
   final String studentId;
+  final String rollNumber;
   final String name;
   final String location;
   final String supervisorName;
@@ -109,6 +111,7 @@ final _studentHomeProvider = FutureProvider.autoDispose<StudentHomeData>((ref) a
 
   return StudentHomeData(
     studentId: student.id,
+    rollNumber: student.rollNumber,
     name: student.name,
     location: locationName,
     supervisorName: assignment.supervisorName,
@@ -154,8 +157,6 @@ class StudentHomeScreen extends ConsumerWidget {
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
   }
-
-  static String _firstName(String name) => name.split(' ').first;
 }
 
 class _StudentHomeView extends ConsumerStatefulWidget {
@@ -196,9 +197,16 @@ class _StudentHomeViewState extends ConsumerState<_StudentHomeView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ContextHeader(
-            greeting: '${StudentHomeScreen._greeting()}, ${StudentHomeScreen._firstName(data.name)}!',
+            greeting: '${StudentHomeScreen._greeting()}, ${data.name}!',
             subGreeting: 'Keep going, you\'re doing great!',
             trailing: InitialsAvatar(name: data.name),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          IdentityRow(
+            label: 'Earn & Learn ID',
+            value: data.rollNumber,
+            icon: Icons.badge_outlined,
+            trailing: const _ActiveDot(),
           ),
           const SizedBox(height: AppSpacing.lg),
           StudentDutyHeroCard(
@@ -470,6 +478,37 @@ class _CenteredNote extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ActiveDot extends StatelessWidget {
+  const _ActiveDot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 7,
+          height: 7,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryBright,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          'ACTIVE',
+          style: AppTextStyles.labelSmall.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.8,
+            fontSize: 10,
+          ),
+        ),
+      ],
     );
   }
 }

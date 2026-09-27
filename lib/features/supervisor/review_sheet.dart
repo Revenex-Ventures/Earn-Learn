@@ -82,10 +82,21 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.divider,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
+                  ),
+                ),
+              ),
               Row(
                 children: [
                   Expanded(
-                    child: Text(item.studentName, style: AppTextStyles.titleMedium),
+                    child: Text(item.studentName, style: AppTextStyles.titleLarge),
                   ),
                   StatusBadge.status(
                     style: item.status.style,
@@ -149,11 +160,15 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.clay,
                         side: const BorderSide(color: AppColors.clay),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
                       ),
                       child: const Text('Reject'),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: OutlinedButton(
                       onPressed:
@@ -161,15 +176,26 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
                       style: OutlinedButton.styleFrom(
                         foregroundColor: AppColors.marigold,
                         side: const BorderSide(color: AppColors.marigold),
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
                       ),
                       child: const Text('Flag'),
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.md),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: FilledButton(
                       onPressed:
                           _submitting ? null : () => _submit(ApprovalStatus.approved),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.avcoeGreen,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                      ),
                       child: _submitting
                           ? const SizedBox(
                               width: 18,

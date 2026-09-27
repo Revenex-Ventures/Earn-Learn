@@ -51,16 +51,17 @@ class SectionHeader extends StatelessWidget {
 
 /// Muted eyebrow label used to frame dense sections.
 class EyebrowLabel extends StatelessWidget {
-  const EyebrowLabel({super.key, required this.text});
+  const EyebrowLabel({super.key, required this.text, this.color});
 
   final String text;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
     return Text(
       text.toUpperCase(),
       style: AppTextStyles.labelSmall.copyWith(
-        color: AppColors.inkSoft,
+        color: color ?? AppColors.inkSoft,
         letterSpacing: 1.2,
       ),
     );

@@ -11,6 +11,7 @@ import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
+import '../auth/auth_session.dart';
 
 class _ProfileData {
   const _ProfileData({
@@ -98,6 +99,13 @@ class _SupervisorProfileView extends StatelessWidget {
               trailing: InitialsAvatar(name: supervisor.name),
             ),
             const SizedBox(height: AppSpacing.lg),
+            IdentityRow(
+              label: 'Supervisor ID',
+              value: supervisor.id,
+              accent: AppColors.gold,
+              icon: Icons.verified_user_outlined,
+            ),
+            const SizedBox(height: AppSpacing.lg),
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: BoxDecoration(
@@ -173,7 +181,10 @@ class _SupervisorProfileView extends StatelessWidget {
               width: double.infinity,
               height: 52,
               child: OutlinedButton.icon(
-                onPressed: () => context.go(RoutePaths.auth),
+                onPressed: () {
+                  AuthSession.signOut();
+                  context.go(RoutePaths.auth);
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: AppColors.ink,
                   side: const BorderSide(color: AppColors.divider),

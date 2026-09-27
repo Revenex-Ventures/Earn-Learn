@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_elevation.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
@@ -160,76 +161,24 @@ class _AdminOverviewView extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.avcoeGreen,
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.avcoeGreen.withValues(alpha: 0.25),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total Students',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.surface.withValues(alpha: 0.85),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${data.studentCount}',
-                          style: AppTextStyles.headlineLarge.copyWith(
-                            color: AppColors.surface,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: ContextHeader(
+                    greeting: '${data.studentCount}',
+                    subGreeting: 'Total Students',
+                    dateLine: 'Program Overview',
+                    gradient: true,
+                    accent: AppColors.info,
+                    gradientPadding: const EdgeInsets.all(AppSpacing.lg),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    decoration: BoxDecoration(
-                      color: AppColors.ink,
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.ink.withValues(alpha: 0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Active Supervisors',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.surface.withValues(alpha: 0.85),
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '${data.supervisorCount}',
-                          style: AppTextStyles.headlineLarge.copyWith(
-                            color: AppColors.surface,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ],
-                    ),
+                  child: ContextHeader(
+                    greeting: '${data.supervisorCount}',
+                    subGreeting: 'Active Supervisors',
+                    dateLine: 'Program Overview',
+                    gradient: true,
+                    accent: AppColors.info,
+                    gradientPadding: const EdgeInsets.all(AppSpacing.lg),
                   ),
                 ),
               ],
@@ -297,13 +246,13 @@ class _AdminOverviewView extends StatelessWidget {
             // Payroll Tile
             InkWell(
               onTap: () => context.go(RoutePaths.adminPayroll),
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.divider),
+                  gradient: AppColors.surfaceGradient,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  boxShadow: AppElevation.card,
                 ),
                 child: Row(
                   children: [
@@ -405,13 +354,13 @@ class _AdminNavTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.divider),
+          gradient: AppColors.surfaceGradient,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          boxShadow: AppElevation.card,
         ),
         child: Column(
           children: [
@@ -453,9 +402,9 @@ class _EscalationTile extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.clay.withValues(alpha: 0.3)),
+        gradient: AppColors.surfaceGradient,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        boxShadow: AppElevation.card,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

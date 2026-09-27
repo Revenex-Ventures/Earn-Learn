@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:earn_and_learn/app.dart';
 import 'package:earn_and_learn/core/routing/app_router.dart';
 import 'package:earn_and_learn/core/routing/route_paths.dart';
+import 'package:earn_and_learn/core/models/user_role.dart';
+import 'package:earn_and_learn/features/auth/auth_session.dart';
 import 'package:earn_and_learn/shared/mock_data/mock_data.dart';
 
 /// Instrumentation-based visual QA.
@@ -62,6 +64,9 @@ void main() {
         tester.view.devicePixelRatio = 1.0;
         addTearDown(tester.view.reset);
         addTearDown(tester.view.resetPhysicalSize);
+        // The local credential gate blocks shell routes unless the matching
+        // role has signed in; authenticate per section as we sweep it.
+        addTearDown(AuthSession.signOut);
 
     final container = ProviderContainer();
     addTearDown(container.dispose);
@@ -78,6 +83,7 @@ void main() {
         expect(tester.takeException(), isNull, reason: 'Splash raised an exception');
 
         // Phone uses a bottom bar, tablet a rail.
+        AuthSession.signIn(UserRole.student);
         await visit(tester, router, RoutePaths.studentHome);
         if (probe.size.width < 600) {
           expect(find.byType(NavigationBar), findsOneWidget);
@@ -92,10 +98,12 @@ void main() {
         }
 
         for (final path in _supervisorRoutes) {
+          AuthSession.signIn(UserRole.supervisor);
           await visit(tester, router, path);
         }
 
         // Supervisor student detail uses the demo student id.
+        AuthSession.signIn(UserRole.supervisor);
         await visit(
           tester,
           router,
@@ -103,6 +111,7 @@ void main() {
         );
 
         // Admin detail routes use the demo student and location ids.
+        AuthSession.signIn(UserRole.admin);
         await visit(
           tester,
           router,
