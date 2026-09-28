@@ -6,7 +6,6 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
@@ -55,6 +54,20 @@ final _supervisorProfileProvider =
   return _ProfileData(user: user, supervisor: resolvedSupervisor, locations: mine);
 });
 
+/// Warm-premium (accent, badge) pair for a supervisor duty state.
+(Color, BadgeTone) _supervisorTone(SupervisorStatus status) => switch (status) {
+      SupervisorStatus.onDuty => (AppColors.forestSoft, BadgeTone.forest),
+      SupervisorStatus.offDuty => (AppColors.slateWarm, BadgeTone.slate),
+      SupervisorStatus.unavailable => (AppColors.claySoftReject, BadgeTone.clay),
+    };
+
+/// Warm-premium (accent, badge) pair for a work-zone state.
+(Color, BadgeTone) _locationTone(LocationStatus status) => switch (status) {
+      LocationStatus.active => (AppColors.forestSoft, BadgeTone.forest),
+      LocationStatus.attention => (AppColors.goldSoftDeep, BadgeTone.gold),
+      LocationStatus.inactive => (AppColors.slateWarm, BadgeTone.slate),
+    };
+
 /// Supervisor profile: identity, contact and the work zones under them.
 class SupervisorProfileScreen extends ConsumerWidget {
   const SupervisorProfileScreen({super.key});
@@ -86,84 +99,77 @@ class _SupervisorProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final supervisor = data.supervisor;
     final email = data.user.email ?? supervisor.email;
+    final (_, statusTone) = _supervisorTone(supervisor.status);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: supervisor.name,
-              dateLine: 'Supervisor profile',
-              trailing: InitialsAvatar(name: supervisor.name),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            IdentityRow(
-              label: 'Supervisor ID',
-              value: supervisor.id,
-              accent: AppColors.gold,
-              icon: Icons.verified_user_outlined,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Column(
-                children: [
-                  Row(
+            // Identity header.
+            Row(
+              children: [
+                InitialsBubble(
+                  initials: supervisor.initials,
+                  gradient: AppColors.heroForest,
+                  size: 52,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InitialsAvatar(name: supervisor.name, size: 56),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              supervisor.name,
-                              style: AppTextStyles.titleLarge,
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              supervisor.departmentOrNA,
-                              style: AppTextStyles.bodySmall,
-                            ),
-                          ],
+                      const Eyebrow('Supervisor profile'),
+                      const SizedBox(height: 2),
+                      Text(
+                        supervisor.name,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
                         ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      StatusBadge.status(style: supervisor.status.style),
+                      const SizedBox(height: 2),
+                      Text(
+                        supervisor.departmentOrNA,
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.slateWarm),
+                      ),
                     ],
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    child: Divider(height: 1, color: AppColors.divider),
+                ),
+                const SizedBox(width: 10),
+                PremiumBadge(label: supervisor.status.label, tone: statusTone),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            // Identity + contact details.
+            WarmCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Eyebrow('Identity'),
+                  const SizedBox(height: 4),
+                  InfoLine(
+                    label: 'Supervisor ID',
+                    value: supervisor.id,
+                    valueColor: AppColors.goldSoftDeep,
                   ),
-                  ProfileInfoRow(
-                    label: 'Email',
-                    value: email ?? 'Not available',
-                  ),
-                  ProfileInfoRow(
-                    label: 'Contact',
-                    value: supervisor.contactOrNA,
-                  ),
-                  ProfileInfoRow(
-                    label: 'Department',
-                    value: supervisor.departmentOrNA,
-                    showDivider: false,
-                  ),
+                  const HairDivider(),
+                  InfoLine(label: 'Email', value: email ?? 'Not available'),
+                  const HairDivider(),
+                  InfoLine(label: 'Contact', value: supervisor.contactOrNA),
+                  const HairDivider(),
+                  InfoLine(label: 'Department', value: supervisor.departmentOrNA),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
-            const SectionHeader(
-              eyebrow: 'COVERAGE',
-              title: 'My locations',
-            ),
-            const SizedBox(height: AppSpacing.md),
+
+            const SectionEyebrow(eyebrow: 'Coverage', title: 'My locations'),
             if (data.locations.isEmpty)
               const EmptyState(
                 icon: Icons.location_off_outlined,
@@ -173,9 +179,9 @@ class _SupervisorProfileView extends StatelessWidget {
             else
               for (var i = 0; i < data.locations.length; i++) ...[
                 _LocationRow(location: data.locations[i]),
-                if (i != data.locations.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                if (i != data.locations.length - 1) const SizedBox(height: 10),
               ],
+
             const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
@@ -210,15 +216,17 @@ class _LocationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListRow(
+    final (accent, tone) = _locationTone(location.status);
+    return AccentRow(
+      accent: accent,
+      lead: const WarmIconWell(
+        icon: Icons.location_on_outlined,
+        gradient: AppColors.heroForest,
+        foreground: AppColors.onHeroWarm,
+      ),
       title: location.name,
       subtitle: location.description ?? location.status.label,
-      leading: const IconWell(
-        icon: Icons.location_on_outlined,
-        color: AppColors.sage,
-      ),
-      showChevron: false,
-      status: StatusBadge.status(style: location.status.style),
+      trailing: PremiumBadge(label: location.status.label, tone: tone),
     );
   }
 }

@@ -4,10 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
@@ -50,71 +48,126 @@ class _AdminProfileView extends StatelessWidget {
 
   final UserProfile user;
 
+  static String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
+    if (parts.isEmpty) return '—';
+    if (parts.length == 1) {
+      return parts.first.characters.take(2).toString().toUpperCase();
+    }
+    return (parts.first.characters.first + parts.last.characters.first)
+        .toUpperCase();
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayName = user.displayName ?? mockAdminName;
+    final roleLabel = user.role == UserRole.admin
+        ? 'Program Administrator'
+        : user.role.name;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: displayName,
-              trailing: InitialsAvatar(name: displayName),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            IdentityRow(
-              label: 'Officer email',
-              value: user.email ?? 'Not available',
-              accent: AppColors.info,
-              icon: Icons.admin_panel_settings_outlined,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'IDENTITY',
-              title: 'Administrator account',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Column(
-                children: [
-                  _Info(label: 'Email', value: user.email ?? 'Not available'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    child: _BadgeRow(
-                      label: 'Role',
-                      badge: StatusBadge(
-                        label: user.role == UserRole.admin
-                            ? 'Program Administrator'
-                            : user.role.name,
-                        style: styleFor(
-                          StatusTone.neutral,
-                          icon: Icons.admin_panel_settings_outlined,
-                          label: 'Program Administrator',
+            Row(
+              children: [
+                InitialsBubble(
+                  initials: _initials(displayName),
+                  gradient: AppColors.heroForest,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Administrator',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.slateWarm,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
+                      const SizedBox(height: 1),
+                      Text(
+                        displayName,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            WarmCard(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md, vertical: 13),
+              child: Row(
+                children: [
+                  const WarmIconWell(
+                    icon: Icons.admin_panel_settings_outlined,
+                    background: AppColors.infoSoft,
+                    foreground: AppColors.onHeroWarm,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Eyebrow('Officer email'),
+                        const SizedBox(height: 2),
+                        Text(
+                          user.email ?? 'Not available',
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontFamily: AppTextStyles.monoFamily,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.2,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
                   ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                    child: _BadgeRow(
-                      label: 'Status',
-                      badge: StatusBadge.status(style: user.status.style),
+                ],
+              ),
+            ),
+            const SectionEyebrow(
+              eyebrow: 'Identity',
+              title: 'Administrator account',
+            ),
+            WarmCard(
+              child: Column(
+                children: [
+                  InfoLine(
+                    label: 'Email',
+                    value: user.email ?? 'Not available',
+                  ),
+                  const HairDivider(),
+                  _BadgeLine(
+                    label: 'Role',
+                    badge: PremiumBadge(label: roleLabel, tone: BadgeTone.slate),
+                  ),
+                  const HairDivider(),
+                  _BadgeLine(
+                    label: 'Status',
+                    badge: PremiumBadge(
+                      label: user.status.label,
+                      tone: user.status == AccountStatus.active
+                          ? BadgeTone.forest
+                          : BadgeTone.slate,
+                      dot: true,
                     ),
                   ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _Info(
+                  const HairDivider(),
+                  InfoLine(
                     label: 'Joined',
                     value: DateFormat('d MMM yyyy').format(user.createdAt),
                   ),
@@ -138,52 +191,32 @@ class _AdminProfileView extends StatelessWidget {
   }
 }
 
-class _BadgeRow extends StatelessWidget {
-  const _BadgeRow({required this.label, required this.badge});
+/// A label + trailing badge row that lines up with [InfoLine].
+class _BadgeLine extends StatelessWidget {
+  const _BadgeLine({required this.label, required this.badge});
 
   final String label;
-  final StatusBadge badge;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        SizedBox(
-          width: 88,
-          child: Text(
-            label.toUpperCase(),
-            style: AppTextStyles.labelSmall.copyWith(letterSpacing: 0.8),
-          ),
-        ),
-        Expanded(child: badge),
-      ],
-    );
-  }
-}
-
-class _Info extends StatelessWidget {
-  const _Info({required this.label, required this.value});
-
-  final String label;
-  final String value;
+  final Widget badge;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+      padding: const EdgeInsets.symmetric(vertical: 11),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 88,
+          Expanded(
             child: Text(
-              label.toUpperCase(),
-              style: AppTextStyles.labelSmall.copyWith(letterSpacing: 0.8),
+              label,
+              style: const TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.slateWarm,
+              ),
             ),
           ),
-          Expanded(
-            child: Text(value, style: AppTextStyles.bodyMedium),
-          ),
+          const SizedBox(width: 12),
+          badge,
         ],
       ),
     );

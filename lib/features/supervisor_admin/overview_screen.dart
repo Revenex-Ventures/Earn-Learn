@@ -3,11 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_elevation.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
@@ -47,7 +44,6 @@ final _adminOverviewProvider = FutureProvider.autoDispose<AdminOverviewData>(
   final assignments = ref.watch(assignmentRepositoryProvider);
   final verification = ref.watch(verificationRepositoryProvider);
   final payroll = ref.watch(payrollRepositoryProvider);
-
   final allStudents = await students.all();
   final allSupervisors = await supervisors.all();
   final allLocations = await locations.all();
@@ -62,7 +58,8 @@ final _adminOverviewProvider = FutureProvider.autoDispose<AdminOverviewData>(
     supervisorCount: allSupervisors.length,
     assignmentCount: allAssignments.length,
     openItems: items.where((v) => v.status != ApprovalStatus.approved).length,
-    approvedItems: items.where((v) => v.status == ApprovalStatus.approved).length,
+    approvedItems:
+        items.where((v) => v.status == ApprovalStatus.approved).length,
     paymentCount: payments.length,
     staffedLocationCount: allLocations
         .where((l) => allAssignments.any((a) => a.locationId == l.id))
@@ -86,7 +83,6 @@ class AdminOverviewScreen extends ConsumerWidget {
     );
   }
 }
-
 class _AdminOverviewView extends StatelessWidget {
   const _AdminOverviewView({required this.data});
 
@@ -95,243 +91,199 @@ class _AdminOverviewView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Brand Header
-            const BrandHeader(
-              logoHeight: 38,
-              portraitSize: 42,
-              title: 'Earn & Learn',
-              subtitle: 'AVCOE',
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Greeting + Role Badge
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                const InitialsBubble(
+                  initials: 'SD',
+                  gradient: AppColors.heroForest,
+                  foreground: AppColors.onHeroWarm,
+                ),
+                const SizedBox(width: 11),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Good Morning,',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
+                        'Student Dev. Office',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
+                      const SizedBox(height: 1),
                       Text(
-                        'Admin',
-                        style: AppTextStyles.headlineSmall.copyWith(fontWeight: FontWeight.w800),
+                        'Scheme Overview',
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.ink.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(color: AppColors.ink.withValues(alpha: 0.15)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.security, size: 14, color: AppColors.ink),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Administrator',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.ink,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+                _RoundIcon(
+                  icon: Icons.settings_outlined,
+                  onTap: () => context.go(RoutePaths.adminProfile),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // 2 Hero Metric Cards Row matching reference
-            Row(
-              children: [
-                Expanded(
-                  child: ContextHeader(
-                    greeting: '${data.studentCount}',
-                    subGreeting: 'Total Students',
-                    dateLine: 'Program Overview',
-                    gradient: true,
-                    accent: AppColors.info,
-                    gradientPadding: const EdgeInsets.all(AppSpacing.lg),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: ContextHeader(
-                    greeting: '${data.supervisorCount}',
-                    subGreeting: 'Active Supervisors',
-                    dateLine: 'Program Overview',
-                    gradient: true,
-                    accent: AppColors.info,
-                    gradientPadding: const EdgeInsets.all(AppSpacing.lg),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // 6-Item Quick Navigation Grid (2 rows x 3 cols)
-            Row(
-              children: [
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.school_outlined,
-                    label: 'Students',
-                    onTap: () => context.go(RoutePaths.adminStudents),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.people_outline,
-                    label: 'Supervisors',
-                    onTap: () => context.go(RoutePaths.adminSupervisors),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.location_on_outlined,
-                    label: 'Locations',
-                    onTap: () => context.go(RoutePaths.adminLocations),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.assignment_outlined,
-                    label: 'Assignments',
-                    onTap: () => context.go(RoutePaths.adminAssignments),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.calendar_month_outlined,
-                    label: 'Calendar',
-                    onTap: () => context.go(RoutePaths.adminCalendar),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _AdminNavTile(
-                    icon: Icons.bar_chart_outlined,
-                    label: 'Reports',
-                    onTap: () => context.go(RoutePaths.adminReports),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Payroll Tile
-            InkWell(
-              onTap: () => context.go(RoutePaths.adminPayroll),
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-              child: Container(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  gradient: AppColors.surfaceGradient,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  boxShadow: AppElevation.card,
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: AppColors.marigoldLight,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(Icons.payments_outlined, size: 20, color: AppColors.marigold),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Payroll', style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-                          Text('Monthly stipend approvals (${data.paymentCount} records)',
-                              style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate)),
-                        ],
-                      ),
-                    ),
-                    const Icon(Icons.chevron_right, size: 20, color: AppColors.slate),
-                  ],
-                ),
+            EspressoHero(
+              value: '${data.studentCount}',
+              unit: 'enrolled\nstudents',
+              caption:
+                  '${data.locationCount} locations · ${data.supervisorCount} supervisors · ${data.assignmentCount} assignments',
+              leftPill: const HeroPill(
+                label: 'K.B.P. Earn & Learn',
+                icon: Icons.grid_view_outlined,
               ),
+              rightPill: const HeroPill(label: 'AY 2026–27', gold: true),
             ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Operations & Escalations
-            const SectionHeader(
-              eyebrow: 'OPERATIONS',
-              title: 'Live workload',
-            ),
-            const SizedBox(height: AppSpacing.md),
-            MetricGroup(
+            const SectionEyebrow(eyebrow: 'Live workload'),
+            MetricTileGrid(
               items: [
-                MetricItem(
-                  label: 'Open verifications',
+                const MetricTileData(
+                  label: 'On duty',
+                  value: '—',
+                  desc: 'Live count · not tracked',
+                  tone: BadgeTone.slate,
+                ),
+                MetricTileData(
+                  label: 'Pending',
                   value: '${data.openItems}',
-                  icon: Icons.fact_check_outlined,
-                  tone: data.openItems == 0
-                      ? StatusTone.positive
-                      : StatusTone.attention,
+                  desc: 'awaiting review',
+                  tone: BadgeTone.gold,
                 ),
-                MetricItem(
-                  label: 'Approved items',
+                MetricTileData(
+                  label: 'Approved',
                   value: '${data.approvedItems}',
-                  icon: Icons.verified_outlined,
-                  tone: StatusTone.positive,
+                  desc: 'signed off',
+                  tone: BadgeTone.forest,
                 ),
-                MetricItem(
-                  label: 'Staffed locations',
-                  value: '${data.staffedLocationCount}',
-                  icon: Icons.storefront_outlined,
-                  tone: StatusTone.neutral,
+                const MetricTileData(
+                  label: 'Month payout',
+                  value: '₹—',
+                  desc: 'not finalized',
+                  tone: BadgeTone.slate,
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Flagged Items
-            const SectionHeader(
-              eyebrow: 'ESCALATIONS',
-              title: 'Flagged verifications',
+            const SectionEyebrow(eyebrow: 'Health checks'),
+            const SoftBox(
+              label: '77 data validation issues · roster incomplete',
+              tone: BadgeTone.clay,
+              icon: Icons.warning_amber_rounded,
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 10),
+            Column(
+              children: const [
+                _IssueRow(
+                  title: 'No contact',
+                  subtitle: '60 students · phone missing',
+                  count: '60',
+                ),
+                SizedBox(height: 10),
+                _IssueRow(
+                  title: 'No email',
+                  subtitle: '10 supervisors',
+                  count: '10',
+                ),
+                SizedBox(height: 10),
+                _IssueRow(
+                  title: 'No time slot',
+                  subtitle: '3 library allotments',
+                  count: '3',
+                ),
+                SizedBox(height: 10),
+                _IssueRow(
+                  title: 'Unassigned',
+                  subtitle: '4 allotments · no supervisor',
+                  count: '4',
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            const NoteBox(
+              text:
+                  'Counts reflect the current roster import. Resolve the gaps in the directory before payout is finalized.',
+            ),
+            const SectionEyebrow(eyebrow: 'Manage'),
+            Column(
+              children: [
+                _ManageRow(
+                  icon: Icons.school_outlined,
+                  title: 'Students',
+                  subtitle: '${data.studentCount} records · 60 need contact',
+                  onTap: () => context.go(RoutePaths.adminStudents),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.people_outline,
+                  title: 'Supervisors',
+                  subtitle: '${data.supervisorCount} supervisors',
+                  onTap: () => context.go(RoutePaths.adminSupervisors),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.location_on_outlined,
+                  title: 'Locations',
+                  subtitle:
+                      '${data.locationCount} · coordinates: Configuration required',
+                  onTap: () => context.go(RoutePaths.adminLocations),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.assignment_outlined,
+                  title: 'Assignments',
+                  subtitle: '${data.assignmentCount} allotments',
+                  onTap: () => context.go(RoutePaths.adminAssignments),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.calendar_month_outlined,
+                  title: 'Calendar',
+                  subtitle: 'Off-days & holidays',
+                  onTap: () => context.go(RoutePaths.adminCalendar),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.bar_chart_outlined,
+                  title: 'Reports',
+                  subtitle: 'Monthly attendance report',
+                  onTap: () => context.go(RoutePaths.adminReports),
+                ),
+                const SizedBox(height: 10),
+                _ManageRow(
+                  icon: Icons.payments_outlined,
+                  title: 'Payroll',
+                  subtitle: 'Stipend ledger · ${data.paymentCount} records',
+                  onTap: () => context.go(RoutePaths.adminPayroll),
+                ),
+              ],
+            ),
+            const SectionEyebrow(eyebrow: 'Escalations'),
             if (data.flaggedItems.isEmpty)
-              const EmptyState(
+              const NoteBox(
+                text: 'No verifications are currently escalated for review.',
                 icon: Icons.flag_outlined,
-                title: 'No flagged items',
-                message: 'Nothing is currently escalated for review.',
               )
             else
-              for (var i = 0; i < data.flaggedItems.length; i++) ...[
-                _EscalationTile(item: data.flaggedItems[i]),
-                if (i != data.flaggedItems.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
-              ],
+              Column(
+                children: [
+                  for (var i = 0; i < data.flaggedItems.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 10),
+                    _EscalationRow(item: data.flaggedItems[i]),
+                  ],
+                ],
+              ),
           ],
         ),
       ),
@@ -339,117 +291,121 @@ class _AdminOverviewView extends StatelessWidget {
   }
 }
 
-class _AdminNavTile extends StatelessWidget {
-  const _AdminNavTile({
+/// One roster health-check line: an honest validation-issue count kept exactly
+/// as the true intended state (never recomputed here).
+class _IssueRow extends StatelessWidget {
+  const _IssueRow({
+    required this.title,
+    required this.subtitle,
+    required this.count,
+  });
+
+  final String title;
+  final String subtitle;
+  final String count;
+
+  @override
+  Widget build(BuildContext context) {
+    return AccentRow(
+      accent: AppColors.goldSoftDeep,
+      lead: const WarmIconWell(
+        icon: Icons.error_outline,
+        background: AppColors.goldTint,
+        foreground: AppColors.goldSoftDeep,
+      ),
+      title: title,
+      subtitle: subtitle,
+      trailing: Text(
+        count,
+        style: const TextStyle(
+          fontFamily: AppTextStyles.monoFamily,
+          fontSize: 20,
+          fontWeight: FontWeight.w700,
+          color: AppColors.goldSoftDeep,
+        ),
+      ),
+    );
+  }
+}
+
+/// Navigable directory row — preserves the exact route each admin tile
+/// previously reached.
+class _ManageRow extends StatelessWidget {
+  const _ManageRow({
     required this.icon,
-    required this.label,
+    required this.title,
+    required this.subtitle,
     required this.onTap,
   });
 
   final IconData icon;
-  final String label;
+  final String title;
+  final String subtitle;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: AppColors.surfaceGradient,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: AppElevation.card,
-        ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.paper,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 20, color: AppColors.ink),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              label,
-              style: AppTextStyles.labelSmall.copyWith(
-                fontWeight: FontWeight.w600,
-                color: AppColors.ink,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
+    return AccentRow(
+      accent: AppColors.forestSoft,
+      lead: WarmIconWell(
+        icon: icon,
+        background: AppColors.warmIvory,
+        foreground: AppColors.slateWarm,
       ),
+      title: title,
+      subtitle: subtitle,
+      trailing: const RowChevron(),
+      onTap: onTap,
     );
   }
 }
 
-/// One compact escalation line: student, kind • location, one-line summary
-/// and the flagged badge. Intentional — one row max, no review actions here.
-class _EscalationTile extends StatelessWidget {
-  const _EscalationTile({required this.item});
+/// One compact escalation line for a flagged verification. No review actions
+/// here — oversight only.
+class _EscalationRow extends StatelessWidget {
+  const _EscalationRow({required this.item});
 
   final VerificationItem item;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        gradient: AppColors.surfaceGradient,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppElevation.card,
+    return AccentRow(
+      accent: AppColors.claySoftReject,
+      lead: const WarmIconWell(
+        icon: Icons.flag_outlined,
+        background: AppColors.clayTint,
+        foreground: AppColors.claySoftReject,
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const IconWell(
-            icon: Icons.flag_outlined,
-            color: AppColors.clay,
+      title: item.studentName,
+      subtitle: item.summary,
+      trailing: const PremiumBadge(label: 'Flagged', tone: BadgeTone.clay),
+    );
+  }
+}
+/// Small round outlined icon button used in the page header.
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.divider),
           ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        item.studentName,
-                        style: AppTextStyles.titleMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    StatusBadge.status(style: ApprovalStatus.flagged.style),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${item.type.label} • ${item.location}',
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  item.summary,
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkSoft),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
+          child: Icon(icon, size: 20, color: AppColors.ink),
+        ),
       ),
     );
   }

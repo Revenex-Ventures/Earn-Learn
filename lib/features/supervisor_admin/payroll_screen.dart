@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
+import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
-import 'admin_identity_avatar.dart';
 import '../../shared/components/components.dart';
 
 /// Payroll payload: the current-month rollup and its payment records.
@@ -44,7 +43,6 @@ class AdminPayrollScreen extends ConsumerWidget {
     );
   }
 }
-
 class _AdminPayrollView extends StatelessWidget {
   const _AdminPayrollView({required this.data});
 
@@ -57,191 +55,189 @@ class _AdminPayrollView extends StatelessWidget {
     final rollup = data.rollup;
     if (rollup == null) {
       return const SingleChildScrollView(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: EmptyState(
+        padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+        child: NoteBox(
+          text: 'No payroll rollup has been generated for this month yet.',
           icon: Icons.payments_outlined,
-          title: 'Payroll not available',
-          message: 'No payroll rollup has been generated for this month.',
         ),
       );
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: 'Payroll',
-              dateLine: DateFormat('MMMM yyyy').format(rollup.month),
-              trailing: AdminIdentityAvatar(),
+            Row(
+              children: [
+                const InitialsBubble(
+                  initials: 'SD',
+                  gradient: AppColors.heroForest,
+                  foreground: AppColors.onHeroWarm,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Earnings ledger',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        DateFormat('MMMM yyyy').format(rollup.month),
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                _RoundIcon(
+                  icon: Icons.settings_outlined,
+                  onTap: () => context.go(RoutePaths.adminProfile),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'MONTHLY ROLLUP',
+            const SectionEyebrow(
+              eyebrow: 'Monthly rollup',
               title: 'Disbursement summary',
             ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            WarmCard(
+              ivory: true,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Estimated payable',
-                          style: AppTextStyles.titleSmall,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Flexible(
-                        child: Text(
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Eyebrow('Estimated payable'),
+                        const SizedBox(height: 4),
+                        Text(
                           '₹${_currency.format(rollup.estimatedPayable.toInt())}',
-                          style: AppTextStyles.currencyMedium,
-                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontFamily: AppTextStyles.monoFamily,
+                            fontSize: 32,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.5,
+                            color: AppColors.inkWarm,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Divider(height: 1, color: AppColors.divider),
-                  const SizedBox(height: AppSpacing.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Status', style: AppTextStyles.bodySmall),
-                      StatusBadge.status(style: rollup.status.style),
-                    ],
+                  const SizedBox(width: 10),
+                  PremiumBadge(
+                    label: rollup.status.label,
+                    tone: _payrollTone(rollup.status),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            MetricGroup(
+            const SectionEyebrow(eyebrow: 'This month'),
+            MetricTileGrid(
               items: [
-                MetricItem(
+                MetricTileData(
                   label: 'Students',
                   value: '${rollup.studentCount}',
-                  icon: Icons.school_outlined,
-                  tone: StatusTone.neutral,
+                  desc: 'in rollup',
+                  tone: BadgeTone.forest,
                 ),
-                MetricItem(
+                MetricTileData(
                   label: 'Present days',
                   value: '${rollup.presentDays}',
-                  icon: Icons.today_outlined,
-                  tone: StatusTone.neutral,
+                  desc: 'verified',
+                  tone: BadgeTone.slate,
                 ),
-                MetricItem(
+                MetricTileData(
                   label: 'Paid holidays',
                   value: '${rollup.paidHolidays}',
-                  icon: Icons.event_available_outlined,
-                  tone: StatusTone.neutral,
+                  desc: 'credited',
+                  tone: BadgeTone.slate,
                 ),
-                MetricItem(
-                  label: 'Rate per day',
+                MetricTileData(
+                  label: 'Rate / day',
                   value: '₹${_currency.format(rollup.ratePerDay.toInt())}',
-                  icon: Icons.payments_outlined,
-                  tone: StatusTone.neutral,
+                  desc: 'per present day',
+                  tone: BadgeTone.gold,
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.xxl),
-            const SectionHeader(
-              eyebrow: 'DISBURSEMENT LEDGER',
+            const SectionEyebrow(
+              eyebrow: 'Disbursement ledger',
               title: 'Payment records',
-              subtitle: 'Verified hours and calculated stipend per student.',
             ),
-            const SizedBox(height: AppSpacing.md),
             if (data.records.isEmpty)
-              const EmptyState(
+              const NoteBox(
+                text:
+                    'Per-student records for this month will appear here once '
+                    'verified hours are rolled up.',
                 icon: Icons.receipt_long_outlined,
-                title: 'No payment records',
-                message: 'Per-student records for this month will appear here.',
               )
             else
-              for (var i = 0; i < data.records.length; i++) ...[
-                _PaymentRow(record: data.records[i]),
-                if (i != data.records.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
-              ],
-            const SizedBox(height: AppSpacing.xxl),
-            const SectionHeader(
-              eyebrow: 'ACTIONS',
+              Column(
+                children: [
+                  for (var i = 0; i < data.records.length; i++) ...[
+                    if (i > 0) const SizedBox(height: 12),
+                    _PaymentTicket(record: data.records[i]),
+                  ],
+                ],
+              ),
+            const SectionEyebrow(
+              eyebrow: 'Actions',
               title: 'Disbursement approval',
             ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            WarmCard(
+              child: Row(
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.info_outline,
-                        size: 16,
-                        color: AppColors.slate,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Text(
-                          'Pending — the finance approval workflow arrives '
-                          'with the disbursement stage.',
-                          style: AppTextStyles.bodySmall,
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.picture_as_pdf_outlined, size: 18),
+                      label: const Text('Export PDF'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: null,
-                          icon: const Icon(Icons.picture_as_pdf_outlined,
-                              size: 18),
-                          label: const Text('Export PDF'),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: null,
+                      icon: const Icon(Icons.check_circle_outline, size: 18),
+                      label: const Text('Approve Batch'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: null,
-                          icon: const Icon(Icons.check_circle_outline, size: 18),
-                          label: const Text('Approve Batch'),
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+            const NoteBox(
+              text:
+                  'Provisional until the Student Development Officer approves '
+                  'the month. Disbursement date is set by the SDO — currently '
+                  'not scheduled.',
             ),
           ],
         ),
@@ -250,60 +246,86 @@ class _AdminPayrollView extends StatelessWidget {
   }
 }
 
-class _PaymentRow extends StatelessWidget {
-  const _PaymentRow({required this.record});
+/// Maps a payment disbursement state to the kit badge palette.
+BadgeTone _payrollTone(PaymentStatus status) => switch (status) {
+      PaymentStatus.pending => BadgeTone.gold,
+      PaymentStatus.inProgress => BadgeTone.info,
+      PaymentStatus.approved => BadgeTone.forest,
+      PaymentStatus.paid => BadgeTone.forest,
+      PaymentStatus.held => BadgeTone.clay,
+    };
+
+/// One per-student payment as a perforated ledger receipt. All figures are the
+/// real calculated values; a missing disbursement date reads "Not scheduled".
+class _PaymentTicket extends StatelessWidget {
+  const _PaymentTicket({required this.record});
 
   final PaymentRecord record;
 
   @override
   Widget build(BuildContext context) {
-    final amount = _AdminPayrollView._currency.format(
-      record.calculatedAmount.toInt(),
+    final currency = _AdminPayrollView._currency;
+    final disbursement = record.paymentDate != null
+        ? DateFormat('d MMM yyyy').format(record.paymentDate!)
+        : 'Not scheduled';
+    return LedgerTicket(
+      eyebrow: 'Statement of hours',
+      name: record.studentName,
+      statusLabel: record.status.label,
+      statusTone: _payrollTone(record.status),
+      figures: [
+        LedgerFigure(
+          label: 'Verified hrs',
+          value: record.verifiedHours.toStringAsFixed(1),
+        ),
+        LedgerFigure(label: 'Days worked', value: '${record.eligibleDays}'),
+        LedgerFigure(
+          label: 'Amount',
+          value: '₹${currency.format(record.calculatedAmount.toInt())}',
+          forest: true,
+        ),
+      ],
+      rows: [
+        InfoLineData(
+          label: 'Rate applied',
+          value: '₹${currency.format(record.ratePerDay.toInt())} / day',
+        ),
+        InfoLineData(label: 'Paid holidays', value: '${record.paidHolidays}'),
+        InfoLineData(
+          label: 'Disbursement',
+          value: disbursement,
+          valueColor: AppColors.slateWarm,
+        ),
+      ],
+      refLeft: 'REF · ${record.receiptId ?? record.id} · ${record.studentId}',
+      refRight: 'SDO sign-off',
     );
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          InitialsAvatar(name: record.studentName, radius: 20),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  record.studentName,
-                  style: AppTextStyles.titleSmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${record.verifiedHours.toStringAsFixed(1)}h verified · '
-                  '${record.eligibleDays} days',
-                  style: AppTextStyles.bodySmall,
-                ),
-              ],
-            ),
+  }
+}
+/// Small round outlined icon button used in the page header.
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: AppColors.surface,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.divider),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '₹$amount',
-                style: AppTextStyles.currencySmall,
-              ),
-              const SizedBox(height: 2),
-              StatusBadge.status(style: record.status.style),
-            ],
-          ),
-        ],
+          child: Icon(icon, size: 20, color: AppColors.ink),
+        ),
       ),
     );
   }

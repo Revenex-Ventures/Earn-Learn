@@ -57,7 +57,7 @@ class StudentHomeData {
   final String tomorrowSubtitle;
 }
 
-final _studentHomeProvider = FutureProvider.autoDispose<StudentHomeData>((ref) async {
+final studentHomeProvider = FutureProvider.autoDispose<StudentHomeData>((ref) async {
   final account = ref.watch(accountRepositoryProvider);
   final students = ref.watch(studentRepositoryProvider);
   final assignments = ref.watch(assignmentRepositoryProvider);
@@ -136,7 +136,7 @@ class StudentHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final snapshot = ref.watch(_studentHomeProvider);
+    final snapshot = ref.watch(studentHomeProvider);
 
     return snapshot.when(
       loading: () => const _CenteredNote(
@@ -149,13 +149,6 @@ class StudentHomeScreen extends ConsumerWidget {
       ),
       data: (data) => _StudentHomeView(data: data),
     );
-  }
-
-  static String _greeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning';
-    if (hour < 17) return 'Good afternoon';
-    return 'Good evening';
   }
 }
 
@@ -188,106 +181,7 @@ class _StudentHomeViewState extends ConsumerState<_StudentHomeView> {
   @override
   Widget build(BuildContext context) {
     final data = widget.data;
-    final verifiedHours = data.verifiedHours;
-    final maxMonthlyHours = data.maxMonthlyHours;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ContextHeader(
-            greeting: '${StudentHomeScreen._greeting()}, ${data.name}!',
-            subGreeting: 'Keep going, you\'re doing great!',
-            trailing: InitialsAvatar(name: data.name),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          IdentityRow(
-            label: 'Earn & Learn ID',
-            value: data.rollNumber,
-            icon: Icons.badge_outlined,
-            trailing: const _ActiveDot(),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          StudentDutyHeroCard(
-            location: data.location,
-            supervisorName: data.supervisorName,
-            windows: data.windows,
-            workDescription: data.workDescription,
-            today: data.todayRecord,
-            approval: data.approval,
-            isOffDay: data.isOffDay,
-            onPrimaryAction: () => _primary(context, ref, data),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          // Quick Actions Row matching design reference
-          Row(
-            children: [
-              Expanded(
-                child: _QuickActionTile(
-                  icon: Icons.calendar_month_outlined,
-                  label: 'Check-In',
-                  onTap: () => context.go(RoutePaths.studentAttendance),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickActionTile(
-                  icon: Icons.assignment_outlined,
-                  label: 'Assignments',
-                  onTap: () => context.go(RoutePaths.studentAssignment),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: _QuickActionTile(
-                  icon: Icons.person_outline,
-                  label: 'Profile',
-                  onTap: () => context.go(RoutePaths.studentProfile),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: AppColors.divider),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MonthlyHoursMeter(
-                  verifiedHours: verifiedHours,
-                  maxMonthlyHours: maxMonthlyHours,
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                  child: Divider(height: 1, color: AppColors.divider),
-                ),
-                UpcomingShiftTile(
-                  location: data.tomorrowLocation,
-                  subtitle: data.tomorrowSubtitle,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          WeekAttendanceStrip(
-            attendance: data.attendance,
-            calendar: data.calendar,
-            onViewAll: () => context.go(RoutePaths.studentAttendance),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _primary(BuildContext context, WidgetRef ref, StudentHomeData data) {
     final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
     final state = deriveShiftState(
       now: now,
       windows: data.windows,
@@ -296,166 +190,470 @@ class _StudentHomeViewState extends ConsumerState<_StudentHomeView> {
       isOffDay: data.isOffDay,
     );
 
-    switch (state) {
-      case ShiftState.upcoming:
-      case ShiftState.ready:
-        _startAttendanceSheet(context, ref, data, today, AttendanceOpKind.checkIn);
-      case ShiftState.working:
-        final scheduledEnd = data.windows.isNotEmpty
-            ? data.windows.map((w) => w.endOn(now)).reduce((a, b) => a.isAfter(b) ? a : b)
-            : null;
-        if (scheduledEnd != null && now.isBefore(scheduledEnd)) {
-          final remaining = scheduledEnd.difference(now);
-          final minutes = remaining.inMinutes;
-          final hours = remaining.inHours;
-          final remainingStr = hours > 0 ? '${hours}h ${minutes % 60}m' : '${minutes}m';
+    final verified = data.verifiedHours;
+    final verifiedStr = _hours(verified);
+    final daysWorked =
+        data.attendance.where((r) => r.verifiedHours > 0).length;
+    final remaining = data.maxMonthlyHours - verified;
+    final ceilingCaption = data.maxMonthlyHours > 0
+        ? '${_hours(remaining <= 0 ? 0 : remaining)} h to your ${data.maxMonthlyHours}-hour monthly ceiling'
+        : 'Monthly ceiling: Not specified';
 
-          showDialog<bool>(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Row(
-                children: [
-                  Icon(Icons.warning_amber_rounded, color: AppColors.clay, size: 22),
-                  SizedBox(width: AppSpacing.sm),
-                  Text('Early Check-Out'),
-                ],
+    final statusLabel = switch (state) {
+      ShiftState.working => 'On duty',
+      ShiftState.upcoming || ShiftState.ready => 'Scheduled',
+      ShiftState.completed => 'Verified',
+      ShiftState.pendingVerification => 'In review',
+      ShiftState.flagged => 'Flagged',
+      ShiftState.missed => 'Missed',
+      ShiftState.offDay || ShiftState.leave => 'Off day',
+    };
+
+    final (IconData qaIcon, String qaLabel, String qaSub) = switch (state) {
+      ShiftState.working => (Icons.power_settings_new, 'Check-Out', 'End duty'),
+      ShiftState.completed => (Icons.verified_outlined, 'Verified', 'Today done'),
+      ShiftState.pendingVerification =>
+        (Icons.hourglass_empty, 'In review', 'Pending'),
+      ShiftState.flagged => (Icons.flag_outlined, 'Resolve', 'Flagged'),
+      _ => (Icons.power_settings_new, 'Check-In', 'Start duty'),
+    };
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              InitialsBubble(
+                initials: _initials(data.name),
+                gradient: AppColors.heroForest,
               ),
-              content: Text(
-                'Your shift ends in $remainingStr. If you check out now, only time worked so far will be submitted for verification.',
-                style: AppTextStyles.bodyMedium,
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.of(ctx).pop(false),
-                  child: const Text('Continue Working'),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Welcome back',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.slate,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    Text(
+                      data.name,
+                      style: AppTextStyles.titleLarge.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.05,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
-                ElevatedButton(
-                  onPressed: () => Navigator.of(ctx).pop(true),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.ink,
-                    foregroundColor: AppColors.surface,
-                  ),
-                  child: const Text('Proceed with Check-Out'),
+              ),
+              _RoundIcon(
+                icon: Icons.settings_outlined,
+                onTap: () => context.go(RoutePaths.studentProfile),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          EspressoHero(
+            value: verifiedStr,
+            unit: 'verified\nhours',
+            caption: ceilingCaption,
+            leftPill: const HeroPill(label: 'Duty Tally', icon: Icons.schedule),
+            stats: [
+              HeroStat(label: 'This month', value: '$daysWorked days'),
+              HeroStat(label: 'Verified', value: '$verifiedStr h'),
+              HeroStat(
+                label: 'Status',
+                value: statusLabel,
+                gold: state == ShiftState.working,
+              ),
+            ],
+            trust: const [
+              TrustItem(icon: Icons.place_outlined, label: 'Zone\nverified'),
+              TrustItem(
+                  icon: Icons.photo_camera_outlined, label: 'Selfie\nverified'),
+              TrustItem(
+                  icon: Icons.verified_user_outlined,
+                  label: 'Supervisor\nsigned'),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _identityRow(data),
+          const SectionEyebrow(eyebrow: 'Today\'s schedule'),
+          _scheduleCard(data),
+          const SectionEyebrow(eyebrow: 'Quick actions'),
+          Row(
+            children: [
+              Expanded(
+                child: QuickAction(
+                  icon: qaIcon,
+                  label: qaLabel,
+                  sub: qaSub,
+                  iconGradient: AppColors.terraGrad,
+                  onTap: () => studentPrimaryAction(context, ref, data),
                 ),
-              ],
-            ),
-          ).then((confirmed) {
-            if (confirmed == true && context.mounted) {
-              _startAttendanceSheet(context, ref, data, today, AttendanceOpKind.checkOut);
-            }
-          });
-        } else {
-          _startAttendanceSheet(context, ref, data, today, AttendanceOpKind.checkOut);
-        }
-      case ShiftState.completed:
-        _snack(context, 'Attendance verified for today.');
-      case ShiftState.pendingVerification:
-        _snack(context, 'Attendance is being finalized by the supervisor.');
-      case ShiftState.flagged:
-        _showFlaggedDialog(context, ref, data, today);
-      case ShiftState.missed:
-        _snack(context, 'Shift was missed — contact supervisor for make-up.');
-      case ShiftState.offDay:
-      case ShiftState.leave:
-        _snack(context, 'No shift scheduled today.');
-    }
-  }
-
-  void _startAttendanceSheet(
-    BuildContext context,
-    WidgetRef ref,
-    StudentHomeData data,
-    DateTime today,
-    AttendanceOpKind op,
-  ) {
-    final sessionId = data.todayRecord?.id ??
-        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-    AttendanceFlowSheet.show(
-      context: context,
-      locationName: data.location,
-      supervisorName: data.supervisorName,
-      windows: data.windows,
-      op: op,
-      studentId: data.studentId,
-      sessionId: sessionId,
-      date: today,
-    ).then((status) {
-      if (status != null && context.mounted) {
-        ref.invalidate(_studentHomeProvider);
-        final verb = op == AttendanceOpKind.checkIn ? 'Checked in' : 'Checked out';
-        _snack(context, '$verb: ${status.label}.');
-      }
-    });
-  }
-
-  void _showFlaggedDialog(
-    BuildContext context,
-    WidgetRef ref,
-    StudentHomeData data,
-    DateTime today,
-  ) {
-    final reason = data.todayRecord?.exception ??
-        'Supervisor flagged today\'s attendance entry. Please check details or submit a corrected attendance.';
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.flag_outlined, color: AppColors.clay, size: 22),
-            SizedBox(width: AppSpacing.sm),
-            Text('Supervisor Notice'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Reason for flag / review:',
-              style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: BoxDecoration(
-                color: AppColors.clayLight,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.clay.withValues(alpha: 0.3)),
               ),
-              child: Text(
-                reason,
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink),
+              const SizedBox(width: 10),
+              Expanded(
+                child: QuickAction(
+                  icon: Icons.assignment_outlined,
+                  label: 'Assignment',
+                  sub: 'Duty details',
+                  iconColor: WarmKit.espressoBase,
+                  onTap: () => context.go(RoutePaths.studentAssignment),
+                ),
               ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Dismiss'),
+              const SizedBox(width: 10),
+              Expanded(
+                child: QuickAction(
+                  icon: Icons.calendar_month_outlined,
+                  label: 'Register',
+                  sub: '$daysWorked days',
+                  iconGradient: AppColors.goldSoftGrad,
+                  iconFg: const Color(0xFF4A3915),
+                  onTap: () => context.go(RoutePaths.studentAttendance),
+                ),
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              _startAttendanceSheet(context, ref, data, today, AttendanceOpKind.checkIn);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.ink,
-              foregroundColor: AppColors.surface,
-            ),
-            child: const Text('Resubmit Attendance'),
-          ),
+          const SectionEyebrow(eyebrow: 'This week'),
+          _nextShiftCard(data),
         ],
       ),
     );
   }
 
-  void _snack(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(message)));
+  static String _hours(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(1);
+
+  static String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
+    if (parts.isEmpty) return '—';
+    if (parts.length == 1) {
+      return parts.first.characters.take(2).toString().toUpperCase();
+    }
+    return (parts.first.characters.first + parts.last.characters.first)
+        .toUpperCase();
   }
+
+  Widget _identityRow(StudentHomeData data) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md, vertical: 13),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: WarmKit.shadowSm,
+      ),
+      child: Row(
+        children: [
+          const WarmIconWell(
+            icon: Icons.badge_outlined,
+            gradient: AppColors.heroForest,
+            foreground: AppColors.onHeroWarm,
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Eyebrow('Earn & Learn ID'),
+                const SizedBox(height: 2),
+                Text(
+                  data.rollNumber,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontFamily: AppTextStyles.monoFamily,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const _ActiveDot(),
+        ],
+      ),
+    );
+  }
+  /// Explicit "schedule of time" card — spells out today's duty window(s),
+  /// planned daily hours, duty, location and in-charge from the real
+  /// assignment fixture. Shows an honest "Not assigned" state when a shift
+  /// window has not been set on the allotment.
+  Widget _scheduleCard(StudentHomeData data) {
+    final hasWindows = data.windows.isNotEmpty;
+    final shiftText = hasWindows
+        ? data.windows.map((w) => w.label).join('  ·  ')
+        : 'Not assigned';
+    final plannedMinutes =
+        data.windows.fold<int>(0, (sum, w) => sum + w.duration.inMinutes);
+    final plannedHours = plannedMinutes / 60.0;
+    final plannedStr =
+        hasWindows ? '${_hours(plannedHours)} h / day' : 'Not specified';
+
+    return WarmCard(
+      ivory: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const WarmIconWell(
+                icon: Icons.schedule_outlined,
+                gradient: AppColors.terraGrad,
+                foreground: AppColors.surface,
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Eyebrow('Duty window'),
+                    const SizedBox(height: 3),
+                    Text(
+                      shiftText,
+                      style: AppTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.1,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (data.windows.length > 1)
+                const PremiumBadge(label: 'SPLIT', tone: BadgeTone.terra),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const HairDivider(),
+          InfoLine(label: 'Planned', value: plannedStr),
+          const HairDivider(),
+          InfoLine(
+            label: 'Duty',
+            value: data.workDescription.isNotEmpty
+                ? data.workDescription
+                : 'Not specified',
+          ),
+          const HairDivider(),
+          InfoLine(label: 'Location', value: data.location),
+          const HairDivider(),
+          InfoLine(label: 'In-charge', value: data.supervisorName),
+        ],
+      ),
+    );
+  }
+
+  Widget _nextShiftCard(StudentHomeData data) {
+    return AccentRow(
+      accent: AppColors.terraSpark,
+      lead: const WarmIconWell(
+        icon: Icons.event_available_outlined,
+        gradient: AppColors.terraGrad,
+        foreground: AppColors.surface,
+      ),
+      title: data.tomorrowLocation,
+      subtitle: data.tomorrowSubtitle,
+      trailing: const RowChevron(),
+      onTap: () => context.go(RoutePaths.studentAttendance),
+    );
+  }
+}
+
+/// Shared entry point for the student's primary duty action (Check-In /
+/// Check-Out / resolve-flag), used by both the Home quick-action tile and the
+/// shell's center action button so the FAB performs the real flow rather than
+/// only switching tabs. Pure function of (context, ref, data): it reads the
+/// live shift state and opens the correct flow.
+void studentPrimaryAction(
+  BuildContext context,
+  WidgetRef ref,
+  StudentHomeData data,
+) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  final state = deriveShiftState(
+    now: now,
+    windows: data.windows,
+    today: data.todayRecord,
+    approval: data.approval,
+    isOffDay: data.isOffDay,
+  );
+
+  switch (state) {
+    case ShiftState.upcoming:
+    case ShiftState.ready:
+      _startStudentAttendanceSheet(
+          context, ref, data, today, AttendanceOpKind.checkIn);
+    case ShiftState.working:
+      final scheduledEnd = data.windows.isNotEmpty
+          ? data.windows
+              .map((w) => w.endOn(now))
+              .reduce((a, b) => a.isAfter(b) ? a : b)
+          : null;
+      if (scheduledEnd != null && now.isBefore(scheduledEnd)) {
+        final remaining = scheduledEnd.difference(now);
+        final minutes = remaining.inMinutes;
+        final hours = remaining.inHours;
+        final remainingStr =
+            hours > 0 ? '${hours}h ${minutes % 60}m' : '${minutes}m';
+
+        showDialog<bool>(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.warning_amber_rounded,
+                    color: AppColors.clay, size: 22),
+                SizedBox(width: AppSpacing.sm),
+                Text('Early Check-Out'),
+              ],
+            ),
+            content: Text(
+              'Your shift ends in $remainingStr. If you check out now, only time worked so far will be submitted for verification.',
+              style: AppTextStyles.bodyMedium,
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: const Text('Continue Working'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(ctx).pop(true),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.ink,
+                  foregroundColor: AppColors.surface,
+                ),
+                child: const Text('Proceed with Check-Out'),
+              ),
+            ],
+          ),
+        ).then((confirmed) {
+          if (confirmed == true && context.mounted) {
+            _startStudentAttendanceSheet(
+                context, ref, data, today, AttendanceOpKind.checkOut);
+          }
+        });
+      } else {
+        _startStudentAttendanceSheet(
+            context, ref, data, today, AttendanceOpKind.checkOut);
+      }
+    case ShiftState.completed:
+      _studentSnack(context, 'Attendance verified for today.');
+    case ShiftState.pendingVerification:
+      _studentSnack(context, 'Attendance is being finalized by the supervisor.');
+    case ShiftState.flagged:
+      _showStudentFlaggedDialog(context, ref, data, today);
+    case ShiftState.missed:
+      _studentSnack(
+          context, 'Shift was missed — contact supervisor for make-up.');
+    case ShiftState.offDay:
+    case ShiftState.leave:
+      _studentSnack(context, 'No shift scheduled today.');
+  }
+}
+
+void _startStudentAttendanceSheet(
+  BuildContext context,
+  WidgetRef ref,
+  StudentHomeData data,
+  DateTime today,
+  AttendanceOpKind op,
+) {
+  final sessionId = data.todayRecord?.id ??
+      '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+  AttendanceFlowSheet.show(
+    context: context,
+    locationName: data.location,
+    supervisorName: data.supervisorName,
+    windows: data.windows,
+    op: op,
+    studentId: data.studentId,
+    sessionId: sessionId,
+    date: today,
+  ).then((status) {
+    if (status != null && context.mounted) {
+      ref.invalidate(studentHomeProvider);
+      final verb = op == AttendanceOpKind.checkIn ? 'Checked in' : 'Checked out';
+      _studentSnack(context, '$verb: ${status.label}.');
+    }
+  });
+}
+
+void _showStudentFlaggedDialog(
+  BuildContext context,
+  WidgetRef ref,
+  StudentHomeData data,
+  DateTime today,
+) {
+  final reason = data.todayRecord?.exception ??
+      'Supervisor flagged today\'s attendance entry. Please check details or submit a corrected attendance.';
+  showDialog<void>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Row(
+        children: [
+          Icon(Icons.flag_outlined, color: AppColors.clay, size: 22),
+          SizedBox(width: AppSpacing.sm),
+          Text('Supervisor Notice'),
+        ],
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Reason for flag / review:',
+            style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: AppColors.clayLight,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: AppColors.clay.withValues(alpha: 0.3)),
+            ),
+            child: Text(
+              reason,
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(),
+          child: const Text('Dismiss'),
+        ),
+        ElevatedButton(
+          onPressed: () {
+            Navigator.of(ctx).pop();
+            _startStudentAttendanceSheet(
+                context, ref, data, today, AttendanceOpKind.checkIn);
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.ink,
+            foregroundColor: AppColors.surface,
+          ),
+          child: const Text('Resubmit Attendance'),
+        ),
+      ],
+    ),
+  );
+}
+
+void _studentSnack(BuildContext context, String message) {
+  ScaffoldMessenger.of(context)
+    ..hideCurrentSnackBar()
+    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 class _CenteredNote extends StatelessWidget {
@@ -513,52 +711,28 @@ class _ActiveDot extends StatelessWidget {
   }
 }
 
-class _QuickActionTile extends StatelessWidget {
-  const _QuickActionTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, required this.onTap});
 
   final IconData icon;
-  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.surface,
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.md,
-            horizontal: AppSpacing.sm,
-          ),
+          width: 42,
+          height: 42,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            shape: BoxShape.circle,
             border: Border.all(color: AppColors.divider),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 22, color: AppColors.ink),
-              const SizedBox(height: 6),
-              Text(
-                label,
-                style: AppTextStyles.labelSmall.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                  fontSize: 11,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+          child: Icon(icon, size: 20, color: AppColors.ink),
         ),
       ),
     );

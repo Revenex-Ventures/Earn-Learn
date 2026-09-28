@@ -3,10 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
-import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
@@ -78,22 +75,25 @@ class _AdminLocationsScreenState extends ConsumerState<AdminLocationsScreen> {
     final filtered = _filter(data.locations);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: 'Locations',
-              trailing: AdminIdentityAvatar(),
+            const _DirectoryHeader(
+              icon: Icons.location_on_outlined,
+              eyebrow: 'Zones',
+              title: 'Locations',
             ),
-            const SizedBox(height: AppSpacing.lg),
-            SectionHeader(
-              eyebrow: 'ZONES',
-              title: 'Work locations',
-              subtitle: '${filtered.length} of ${data.locations.length} shown',
+            SectionEyebrow(
+              eyebrow: 'Work locations',
+              title: 'Duty sites',
+              trailing: PremiumBadge(
+                label: '${filtered.length} of ${data.locations.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             SearchFilterBar(
               hintText: 'Search by name or description',
               initialQuery: _query,
@@ -113,20 +113,17 @@ class _AdminLocationsScreenState extends ConsumerState<AdminLocationsScreen> {
               // would mean inventing it.
               _LocationGroup(
                 title: 'Needs a supervisor',
-                eyebrow: 'UNSTAFFED',
-                locations: filtered
-                    .where((l) => l.supervisorIds.isEmpty)
-                    .toList(),
+                eyebrow: 'Unstaffed',
+                locations:
+                    filtered.where((l) => l.supervisorIds.isEmpty).toList(),
                 studentCounts: data.studentCounts,
                 emptyMessage: 'Every work location has a supervisor assigned.',
               ),
-              const SizedBox(height: AppSpacing.lg),
               _LocationGroup(
                 title: 'Supervised',
-                eyebrow: 'STAFFED',
-                locations: filtered
-                    .where((l) => l.supervisorIds.isNotEmpty)
-                    .toList(),
+                eyebrow: 'Staffed',
+                locations:
+                    filtered.where((l) => l.supervisorIds.isNotEmpty).toList(),
                 studentCounts: data.studentCounts,
                 emptyMessage: 'No supervised locations match this search.',
               ),
@@ -155,52 +152,26 @@ class _LocationGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final count = locations.length;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                eyebrow,
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.inkSoft,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: 2,
-              ),
-              decoration: BoxDecoration(
-                color: AppColors.paper,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: Border.all(color: AppColors.divider),
-              ),
-              child: Text('$count', style: AppTextStyles.labelSmall),
-            ),
-          ],
+        SectionEyebrow(
+          eyebrow: eyebrow,
+          title: title,
+          trailing: PremiumBadge(
+            label: '${locations.length}',
+            tone: BadgeTone.slate,
+          ),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(title, style: AppTextStyles.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
         if (locations.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Text(emptyMessage, style: AppTextStyles.bodySmall),
-          )
+          NoteBox(text: emptyMessage)
         else
           for (var i = 0; i < locations.length; i++) ...[
             _LocationRow(
               location: locations[i],
               studentCount: studentCounts[locations[i].id] ?? 0,
             ),
-            if (i != locations.length - 1)
-              const SizedBox(height: AppSpacing.sm),
+            if (i != locations.length - 1) const SizedBox(height: 10),
           ],
       ],
     );
@@ -215,70 +186,98 @@ class _LocationRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: const BorderSide(color: AppColors.divider),
+    final unstaffed = location.supervisorIds.isEmpty;
+    final accent =
+        unstaffed ? AppColors.claySoftReject : AppColors.forestSoftBright;
+    final subtitle = unstaffed
+        ? '$studentCount students • Supervisor: Not assigned'
+        : '$studentCount students • ${location.supervisorIds.length} '
+            'supervisor${location.supervisorIds.length == 1 ? '' : 's'}';
+
+    return AccentRow(
+      accent: accent,
+      lead: WarmIconWell(
+        icon: Icons.location_on_outlined,
+        background: unstaffed ? AppColors.slateWarm : null,
+        gradient: unstaffed ? null : AppColors.heroForest,
+        foreground: AppColors.onHeroWarm,
       ),
-      child: InkWell(
-        onTap: () => context.go('/admin/locations/${location.id}'),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+      title: location.name,
+      subtitle: subtitle,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PremiumBadge(
+            label: unstaffed ? 'Unassigned' : location.status.label,
+            tone: _locationTone(unstaffed, location.status),
+          ),
+          const SizedBox(width: 8),
+          const RowChevron(),
+        ],
+      ),
+      onTap: () => context.go('/admin/locations/${location.id}'),
+    );
+  }
+}
+
+/// Warm-premium page header for the admin directory screens.
+class _DirectoryHeader extends StatelessWidget {
+  const _DirectoryHeader({
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String eyebrow;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        WarmIconWell(
+          icon: icon,
+          gradient: AppColors.heroForest,
+          foreground: AppColors.onHeroWarm,
+          size: 44,
+          radius: 14,
+          iconSize: 20,
+        ),
+        const SizedBox(width: 11),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  IconWell(icon: Icons.location_on_outlined),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      location.name,
-                      style: AppTextStyles.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  StatusBadge.status(style: location.status.style),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              Eyebrow(eyebrow),
+              const SizedBox(height: 2),
               Text(
-                location.description ?? 'Campus work area',
-                style: AppTextStyles.bodySmall,
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                  color: AppColors.inkWarm,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$studentCount students stationed',
-                      style: AppTextStyles.labelSmall,
-                    ),
-                  ),
-                  if (location.supervisorIds.isEmpty)
-                    Text(
-                      'No supervisor assigned',
-                      style: AppTextStyles.labelSmall
-                          .copyWith(color: AppColors.clay),
-                    )
-                  else
-                    Text(
-                      '${location.supervisorIds.length} supervisor'
-                      '${location.supervisorIds.length == 1 ? '' : 's'}',
-                      style: AppTextStyles.labelSmall,
-                    ),
-                ],
               ),
             ],
           ),
         ),
-      ),
+        const AdminIdentityAvatar(),
+      ],
     );
   }
+}
+
+/// Badge tone for a location row: unstaffed reads as clay, otherwise by status.
+BadgeTone _locationTone(bool unstaffed, LocationStatus status) {
+  if (unstaffed) return BadgeTone.clay;
+  return switch (status) {
+    LocationStatus.active => BadgeTone.forest,
+    LocationStatus.attention => BadgeTone.gold,
+    LocationStatus.inactive => BadgeTone.slate,
+  };
 }

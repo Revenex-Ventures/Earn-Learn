@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_system/app_colors.dart';
+import '../student/home_screen.dart';
 import 'app_shell.dart';
 
-class StudentShell extends StatelessWidget {
+class StudentShell extends ConsumerWidget {
   const StudentShell({
     super.key,
     required this.child,
@@ -35,14 +38,35 @@ class StudentShell extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Watching here keeps the student duty data alive across every student tab,
+    // so the center action button can start the real Check-In / Check-Out flow
+    // (not just navigate) from any page in this section.
+    ref.watch(studentHomeProvider);
+
     return AppShell(
       currentIndex: _currentIndex(context),
       onDestinationSelected: (index) => _onTap(context, index),
       destinations: _destinations,
+      fabIcon: Icons.power_settings_new,
+      fabGradient: AppColors.terraGrad,
+      onFab: () => _onFab(context, ref),
       railHeader: const ShellMark(label: 'Student'),
       child: child,
     );
+  }
+
+  /// The center power button performs the student's live duty action. When the
+  /// duty data is ready it opens the Check-In/Check-Out evidence sheet directly;
+  /// until it has loaded (or on error) it falls back to the Home tab, which
+  /// surfaces the loading/error state.
+  void _onFab(BuildContext context, WidgetRef ref) {
+    final data = ref.read(studentHomeProvider).valueOrNull;
+    if (data != null) {
+      studentPrimaryAction(context, ref, data);
+    } else {
+      context.go('/student');
+    }
   }
 
   int _currentIndex(BuildContext context) {

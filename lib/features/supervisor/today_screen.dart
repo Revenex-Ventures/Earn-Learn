@@ -4,11 +4,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_elevation.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
@@ -127,234 +124,224 @@ class _SupervisorTodayView extends ConsumerWidget {
         .where((v) => v.status == ApprovalStatus.flagged)
         .length;
     final active = data.active;
-
     final verifiedToday = data.verificationItems
         .where((v) => v.status == ApprovalStatus.approved)
         .length;
 
+    final rosterCount = data.myAssignments.length;
+    final zoneCount = data.myLocations.length;
+    final heroCaption = zoneCount == 0
+        ? '$rosterCount ${rosterCount == 1 ? 'student' : 'students'} on your roster · no work zones assigned yet'
+        : '$rosterCount ${rosterCount == 1 ? 'student' : 'students'} on your roster · $zoneCount ${zoneCount == 1 ? 'zone' : 'zones'}';
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Brand Header
-            const BrandHeader(
-              logoHeight: 38,
-              portraitSize: 42,
-              title: 'Earn & Learn',
-              subtitle: 'AVCOE',
-            ),
-            const SizedBox(height: AppSpacing.md),
-
-            // Greeting + Role Badge
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
+                InitialsBubble(
+                  initials: supervisor.initials,
+                  gradient: AppColors.heroForest,
+                ),
+                const SizedBox(width: 11),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Good Morning,',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
+                        'Supervisor',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
+                      const SizedBox(height: 1),
                       Text(
                         supervisor.name,
-                        style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.w800),
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.marigoldLight,
-                    borderRadius: BorderRadius.circular(AppRadius.full),
-                    border: Border.all(color: AppColors.marigold.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.shield_outlined, size: 14, color: AppColors.marigold),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Supervisor',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: AppColors.marigold,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+                _RoundIcon(
+                  icon: Icons.settings_outlined,
+                  onTap: () => context.go(RoutePaths.supervisorProfile),
                 ),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-
-            // Today's Shift Hero Card (Gold Gradient)
-            ContextHeader(
-              greeting: data.myAssignments.length == 1
-                  ? '${data.myAssignments.length} student on your roster'
-                  : '${data.myAssignments.length} students on your roster',
-              subGreeting: data.myLocations.isEmpty
-                  ? 'No work zones assigned yet'
-                  : 'Across ${data.myLocations.length} work '
-                      '${data.myLocations.length == 1 ? 'zone' : 'zones'}',
-              dateLine: 'Today · ${DateFormat('EEE, d MMM').format(DateTime.now())}',
-              gradient: true,
-              accent: AppColors.gold,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // 3-Metric Summary Row matching reference
-            Row(
-              children: [
-                Expanded(
-                  child: _MetricCard(
-                    label: 'Pending Reviews',
-                    value: '${open.length}',
-                    color: AppColors.marigold,
-                    bgColor: AppColors.marigoldLight,
-                    icon: Icons.hourglass_top,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _MetricCard(
-                    label: 'Verified Today',
-                    value: '$verifiedToday',
-                    color: AppColors.avcoeGreen,
-                    bgColor: AppColors.sageLight,
-                    icon: Icons.verified_outlined,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: _MetricCard(
-                    label: 'Flags',
-                    value: '$flagged',
-                    color: AppColors.clay,
-                    bgColor: AppColors.clayLight,
-                    icon: Icons.flag_outlined,
-                  ),
-                ),
+            EspressoHero(
+              value: '${open.length}',
+              unit: 'awaiting\nreview',
+              caption: heroCaption,
+              leftPill:
+                  const HeroPill(label: 'Sign-off desk', icon: Icons.shield_outlined),
+              rightPill: HeroPill(label: supervisor.id, gold: true),
+              stats: [
+                HeroStat(
+                    label: 'Approved today', value: '$verifiedToday', gold: true),
+                HeroStat(label: 'Flagged', value: '$flagged'),
+                HeroStat(label: 'On duty', value: '${active.length}'),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Quick Actions Section
-            Text('Quick Actions', style: AppTextStyles.titleMedium),
-            const SizedBox(height: AppSpacing.sm),
+            const SectionEyebrow(eyebrow: 'This desk'),
+            MetricTileGrid(items: [
+              MetricTileData(
+                label: 'Roster',
+                value: '$rosterCount',
+                desc: rosterCount == 1 ? 'student assigned' : 'students assigned',
+              ),
+              MetricTileData(
+                label: 'Work zones',
+                value: '$zoneCount',
+                desc: 'assigned to you',
+                tone: BadgeTone.gold,
+              ),
+              MetricTileData(
+                label: 'Pending',
+                value: '${open.length}',
+                desc: 'awaiting review',
+                tone: BadgeTone.terra,
+              ),
+              MetricTileData(
+                label: 'Verified',
+                value: '$verifiedToday',
+                desc: 'approved today',
+              ),
+            ]),
+            const SectionEyebrow(eyebrow: 'Quick actions'),
             Row(
               children: [
                 Expanded(
-                  child: _SupervisorActionTile(
+                  child: QuickAction(
                     icon: Icons.people_outline,
-                    label: 'View Students',
+                    label: 'Students',
+                    sub: 'Your roster',
+                    iconGradient: AppColors.heroForest,
                     onTap: () => context.go(RoutePaths.supervisorStudents),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: _SupervisorActionTile(
-                    icon: Icons.calendar_month_outlined,
-                    label: 'Attendance',
-                    onTap: () => context.go(RoutePaths.supervisorAttendance),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: _SupervisorActionTile(
+                  child: QuickAction(
                     icon: Icons.assignment_turned_in_outlined,
-                    label: 'Approvals',
+                    label: 'Reviews',
+                    sub: 'Approval queue',
+                    iconColor: WarmKit.espressoBase,
                     onTap: () => context.go(RoutePaths.supervisorAttendance),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm),
+                const SizedBox(width: 10),
                 Expanded(
-                  child: _SupervisorActionTile(
+                  child: QuickAction(
                     icon: Icons.bar_chart_outlined,
                     label: 'Reports',
+                    sub: 'Monthly',
+                    iconGradient: AppColors.goldSoftGrad,
+                    iconFg: const Color(0xFF4A3915),
                     onTap: () => _snack(context, 'Monthly attendance report'),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.xl),
-
-            // Duty Zones
-            _DutySurface(
-              supervisor: supervisor,
-              locations: data.myLocations,
-              countFor: (location) => data.myAssignments
-                  .where((a) => a.locationId == location.id)
-                  .length,
-              onLocationTap: (location) =>
-                  _snack(context, '${location.name} — zone details.'),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-
-            // Review Queue
-            SectionHeader(
-              eyebrow: 'APPROVAL QUEUE',
-              title: 'Reviews',
-              trailing: InkWell(
+            const SectionEyebrow(eyebrow: 'Work zones'),
+            if (data.myLocations.isEmpty)
+              const SoftBox(
+                label: 'No work zones assigned yet.',
+                tone: BadgeTone.slate,
+                icon: Icons.place_outlined,
+              )
+            else
+              for (var i = 0; i < data.myLocations.length; i++) ...[
+                if (i > 0) const SizedBox(height: 10),
+                Builder(builder: (context) {
+                  final location = data.myLocations[i];
+                  final count = data.myAssignments
+                      .where((a) => a.locationId == location.id)
+                      .length;
+                  return AccentRow(
+                    accent: AppColors.forestSoft,
+                    lead: const WarmIconWell(
+                      icon: Icons.location_on_outlined,
+                      gradient: AppColors.heroForest,
+                      foreground: AppColors.onHeroWarm,
+                    ),
+                    title: location.name,
+                    subtitle:
+                        '$count ${count == 1 ? 'student' : 'students'} at zone',
+                    trailing: const RowChevron(),
+                    onTap: () =>
+                        _snack(context, '${location.name} — zone details.'),
+                  );
+                }),
+              ],
+            SectionEyebrow(
+              eyebrow: 'Pending sessions',
+              trailing: _ViewAll(
                 onTap: () => context.go(RoutePaths.supervisorAttendance),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                child: const Padding(
-                  padding: EdgeInsets.all(AppSpacing.sm),
-                  child: Text(
-                    'View all',
-                    style: AppTextStyles.labelMedium,
-                  ),
-                ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
             if (preview.isEmpty)
-              const EmptyState(
+              const SoftBox(
+                label: 'All clear — nothing awaiting a decision.',
+                tone: BadgeTone.forest,
                 icon: Icons.done_all,
-                title: 'All clear',
-                message: 'No items are waiting on a decision right now.',
               )
             else
               for (var i = 0; i < preview.length; i++) ...[
-                _ReviewRow(
-                  item: preview[i],
+                if (i > 0) const SizedBox(height: 10),
+                AccentRow(
+                  accent: _accentFor(preview[i].status),
+                  lead: InitialsBubble(
+                    initials: _initials(preview[i].studentName),
+                    gradient: _leadGradient(preview[i].status),
+                    foreground: _leadFg(preview[i].status),
+                  ),
+                  title: preview[i].studentName,
+                  subtitle: preview[i].summary,
+                  trailing: PremiumBadge(
+                    label: preview[i].status.label,
+                    tone: _toneFor(preview[i].status),
+                  ),
                   onTap: () => _openReview(context, ref, preview[i]),
                 ),
-                if (i != preview.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
               ],
-            const SizedBox(height: AppSpacing.xl),
-
-            // Active Now
-            SectionHeader(
-              eyebrow: 'ACTIVE NOW',
-              title: 'On site',
-              subtitle: active.isEmpty
-                  ? 'No live check-ins right now.'
-                  : '${active.length} student(s) checked in across your zones.',
-            ),
-            const SizedBox(height: AppSpacing.md),
+            const SectionEyebrow(eyebrow: 'Active now'),
             if (active.isEmpty)
-              const EmptyState(
+              const SoftBox(
+                label: 'No live check-ins right now.',
+                tone: BadgeTone.info,
                 icon: Icons.work_off_outlined,
-                title: 'No one is on site',
-                message: 'Live check-ins will appear here.',
               )
             else
               for (var i = 0; i < active.length; i++) ...[
-                _ActiveRow(item: active[i]),
-                if (i != active.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                if (i > 0) const SizedBox(height: 10),
+                AccentRow(
+                  accent: AppColors.terraSpark,
+                  lead: const WarmIconWell(
+                    icon: Icons.person_outline,
+                    gradient: AppColors.terraGrad,
+                    foreground: AppColors.warmSurface,
+                  ),
+                  title: active[i].studentName,
+                  subtitle: active[i].location,
+                  trailing: Text(
+                    _clock(active[i].submittedAt),
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.slateWarm,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
               ],
           ],
         ),
@@ -416,173 +403,71 @@ class _SupervisorTodayView extends ConsumerWidget {
   }
 }
 
-/// Single surface for the supervisor's duty identity and work zones.
-class _DutySurface extends StatelessWidget {
-  const _DutySurface({
-    required this.supervisor,
-    required this.locations,
-    required this.countFor,
-    required this.onLocationTap,
-  });
+BadgeTone _toneFor(ApprovalStatus status) => switch (status) {
+      ApprovalStatus.approved => BadgeTone.forest,
+      ApprovalStatus.flagged => BadgeTone.terra,
+      ApprovalStatus.rejected => BadgeTone.clay,
+      ApprovalStatus.pending => BadgeTone.gold,
+    };
 
-  final Supervisor supervisor;
-  final List<Location> locations;
-  final int Function(Location location) countFor;
-  final ValueChanged<Location> onLocationTap;
+Color _accentFor(ApprovalStatus status) => switch (status) {
+      ApprovalStatus.approved => AppColors.forestSoft,
+      ApprovalStatus.flagged => AppColors.terraSpark,
+      ApprovalStatus.rejected => AppColors.claySoftReject,
+      ApprovalStatus.pending => AppColors.goldSoftDeep,
+    };
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        gradient: AppColors.surfaceGradient,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppElevation.card,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const IconWell(icon: Icons.badge_outlined),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(supervisor.name, style: AppTextStyles.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(
-                      supervisor.departmentOrNA,
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              StatusBadge.status(style: supervisor.status.style),
-            ],
-          ),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-            child: Divider(height: 1, color: AppColors.divider),
-          ),
-          if (locations.isEmpty)
-            Text(
-              'No work zones assigned.',
-              style: AppTextStyles.bodySmall,
-            )
-          else
-            for (var i = 0; i < locations.length; i++) ...[
-              _LocationRow(
-                location: locations[i],
-                count: countFor(locations[i]),
-                onTap: () => onLocationTap(locations[i]),
-              ),
-              if (i != locations.length - 1)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                  child: Divider(height: 1, color: AppColors.divider),
-                ),
-            ],
-        ],
-      ),
-    );
+Gradient _leadGradient(ApprovalStatus status) => switch (status) {
+      ApprovalStatus.approved => AppColors.heroForest,
+      ApprovalStatus.pending => AppColors.goldSoftGrad,
+      _ => AppColors.terraGrad,
+    };
+
+Color _leadFg(ApprovalStatus status) =>
+    status == ApprovalStatus.pending ? const Color(0xFF4A3915) : AppColors.warmSurface;
+
+String _initials(String name) {
+  final parts =
+      name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return '—';
+  if (parts.length == 1) {
+    return parts.first.characters.take(2).toString().toUpperCase();
   }
+  return (parts.first.characters.first + parts.last.characters.first)
+      .toUpperCase();
 }
 
-class _LocationRow extends StatelessWidget {
-  const _LocationRow({
-    required this.location,
-    required this.count,
-    required this.onTap,
-  });
+String _clock(DateTime t) => DateFormat('h:mm a').format(t).toLowerCase();
 
-  final Location location;
-  final int count;
+class _ViewAll extends StatelessWidget {
+  const _ViewAll({required this.onTap});
+
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              const IconWell(
-                icon: Icons.location_on_outlined,
-                color: AppColors.sage,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'View all',
+              style: AppTextStyles.labelMedium.copyWith(
+                color: AppColors.goldSoftDeep,
+                fontWeight: FontWeight.w800,
               ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(location.name, style: AppTextStyles.titleSmall),
-                    const SizedBox(height: 2),
-                    Text(
-                      '$count students at zone',
-                      style: AppTextStyles.bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-              StatusBadge.status(style: location.status.style),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right, size: 16, color: AppColors.goldSoftDeep),
+          ],
         ),
       ),
     );
   }
 }
-
-class _ReviewRow extends StatelessWidget {
-  const _ReviewRow({required this.item, required this.onTap});
-
-  final VerificationItem item;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = item.status.style;
-    return ListRow(
-      title: item.studentName,
-      subtitle: '${item.type.label} • ${item.location}',
-      leading: IconWell(icon: _typeIcon(item.type), color: style.color),
-      status: StatusBadge.status(style: style),
-      onTap: onTap,
-    );
-  }
-}
-
-class _ActiveRow extends StatelessWidget {
-  const _ActiveRow({required this.item});
-
-  final VerificationItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    final style = item.status.style;
-    return ListRow(
-      title: item.studentName,
-      subtitle: item.location,
-      leading: IconWell(icon: Icons.person_outline, color: style.color),
-      showChevron: false,
-      status: StatusBadge.status(style: style),
-      trailing: Text(_clock(item.submittedAt), style: AppTextStyles.labelSmall),
-    );
-  }
-}
-
-IconData _typeIcon(VerificationType type) => switch (type) {
-      VerificationType.checkIn => Icons.login,
-      VerificationType.checkOut => Icons.logout,
-      VerificationType.attendanceAudit => Icons.fact_check_outlined,
-      VerificationType.correction => Icons.edit_note,
-    };
 
 class _CenteredNote extends StatelessWidget {
   const _CenteredNote({required this.icon, required this.text});
@@ -608,113 +493,30 @@ class _CenteredNote extends StatelessWidget {
   }
 }
 
-class _MetricCard extends StatelessWidget {
-  const _MetricCard({
-    required this.label,
-    required this.value,
-    required this.color,
-    required this.bgColor,
-    required this.icon,
-  });
-
-  final String label;
-  final String value;
-  final Color color;
-  final Color bgColor;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        gradient: AppColors.surfaceGradient,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: AppElevation.card,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(icon, size: 16, color: color),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            value,
-            style: AppTextStyles.headlineSmall.copyWith(
-              fontWeight: FontWeight.w800,
-              color: AppColors.ink,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.slate,
-              fontSize: 11,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SupervisorActionTile extends StatelessWidget {
-  const _SupervisorActionTile({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, required this.onTap});
 
   final IconData icon;
-  final String label;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          gradient: AppColors.surfaceGradient,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          boxShadow: AppElevation.card,
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.paper,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Icon(icon, size: 20, color: AppColors.ink),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Text(
-                label,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.ink,
-                ),
-              ),
-            ),
-          ],
+    return Material(
+      color: AppColors.surface,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 42,
+          height: 42,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.divider),
+          ),
+          child: Icon(icon, size: 20, color: AppColors.ink),
         ),
       ),
     );
   }
 }
-
-String _clock(DateTime t) => DateFormat('h:mm a').format(t).toLowerCase();

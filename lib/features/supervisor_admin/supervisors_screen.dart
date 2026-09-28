@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_spacing.dart';
-import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
@@ -93,22 +92,25 @@ class _AdminSupervisorsScreenState extends ConsumerState<AdminSupervisorsScreen>
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: 'Supervisors',
-              trailing: AdminIdentityAvatar(),
+            const _DirectoryHeader(
+              icon: Icons.badge_outlined,
+              eyebrow: 'Team',
+              title: 'Supervisors',
             ),
-            const SizedBox(height: AppSpacing.lg),
-            SectionHeader(
-              eyebrow: 'TEAM',
-              title: 'Duty staff',
-              subtitle: '${filtered.length} of ${data.supervisors.length} shown',
+            SectionEyebrow(
+              eyebrow: 'Duty staff',
+              title: 'In-charge directory',
+              trailing: PremiumBadge(
+                label: '${filtered.length} of ${data.supervisors.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             SearchFilterBar(
               hintText: 'Search by name or department',
               initialQuery: _query,
@@ -123,19 +125,16 @@ class _AdminSupervisorsScreenState extends ConsumerState<AdminSupervisorsScreen>
               const EmptyState(
                 icon: Icons.person_search_outlined,
                 title: 'No supervisors found',
-                message:
-                    'Try a different name or department filter.',
+                message: 'Try a different name or department filter.',
               )
             else
               for (var i = 0; i < filtered.length; i++) ...[
                 _SupervisorRow(
                   supervisor: filtered[i],
-                  locationCount:
-                      data.locationCounts[filtered[i].id] ?? 0,
+                  locationCount: data.locationCounts[filtered[i].id] ?? 0,
                   studentCount: data.studentCounts[filtered[i].id] ?? 0,
                 ),
-                if (i != filtered.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                if (i != filtered.length - 1) const SizedBox(height: 10),
               ],
           ],
         ),
@@ -157,17 +156,78 @@ class _SupervisorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListRow(
-      leading: const IconWell(icon: Icons.badge_outlined),
+    final (tone, accent) = _supervisorTone(supervisor.status);
+    return AccentRow(
+      accent: accent,
+      lead: InitialsBubble(
+        initials: supervisor.initials,
+        gradient: AppColors.goldSoftGrad,
+        foreground: const Color(0xFF4A3915),
+      ),
       title: supervisor.name,
       subtitle:
-          '${supervisor.departmentOrNA} • $locationCount locations',
-      status: StatusBadge.status(style: supervisor.status.style),
-      trailing: Text(
-        '$studentCount',
-        style: AppTextStyles.statSmall,
-      ),
-      showChevron: false,
+          '${supervisor.departmentOrNA} • $locationCount locations • $studentCount students',
+      trailing: PremiumBadge(label: supervisor.status.label, tone: tone),
     );
   }
 }
+
+/// Warm-premium page header for the admin directory screens.
+class _DirectoryHeader extends StatelessWidget {
+  const _DirectoryHeader({
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String eyebrow;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        WarmIconWell(
+          icon: icon,
+          gradient: AppColors.heroForest,
+          foreground: AppColors.onHeroWarm,
+          size: 44,
+          radius: 14,
+          iconSize: 20,
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Eyebrow(eyebrow),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                  color: AppColors.inkWarm,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        const AdminIdentityAvatar(),
+      ],
+    );
+  }
+}
+
+/// Maps a [SupervisorStatus] to a warm badge tone and left-accent colour.
+(BadgeTone, Color) _supervisorTone(SupervisorStatus status) => switch (status) {
+      SupervisorStatus.onDuty => (BadgeTone.forest, AppColors.forestSoftBright),
+      SupervisorStatus.offDuty => (BadgeTone.slate, AppColors.slateWarm),
+      SupervisorStatus.unavailable =>
+        (BadgeTone.clay, AppColors.claySoftReject),
+    };

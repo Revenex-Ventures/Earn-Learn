@@ -3,10 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
@@ -50,41 +48,66 @@ class _AdminCalendarScreenState extends ConsumerState<AdminCalendarScreen> {
 
   Widget _build(BuildContext context, List<CalendarEvent> events) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ContextHeader(
-              greeting: 'Institutional calendar',
-              trailing: AdminIdentityAvatar(),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'MONTHLY RULE DAYS',
-              title: 'Off days & holidays',
-            ),
-            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
-                IconButton(
-                  onPressed: () => _shiftMonth(-1),
-                  icon: const Icon(Icons.chevron_left),
-                  color: AppColors.ink,
-                  tooltip: 'Previous month',
-                ),
                 Expanded(
-                  child: SectionHeader(
-                    title: DateFormat('MMMM yyyy').format(_month),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Institutional calendar'),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Rule days',
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                IconButton(
-                  onPressed: () => _shiftMonth(1),
-                  icon: const Icon(Icons.chevron_right),
-                  color: AppColors.ink,
-                  tooltip: 'Next month',
-                ),
+                const SizedBox(width: AppSpacing.sm),
+                const AdminIdentityAvatar(),
               ],
+            ),
+            const SectionEyebrow(
+              eyebrow: 'Monthly rule days',
+              title: 'Off days & holidays',
+            ),
+            WarmCard(
+              padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => _shiftMonth(-1),
+                    icon: const Icon(Icons.chevron_left),
+                    color: AppColors.inkWarm,
+                    tooltip: 'Previous month',
+                  ),
+                  Expanded(
+                    child: Text(
+                      DateFormat('MMMM yyyy').format(_month),
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _shiftMonth(1),
+                    icon: const Icon(Icons.chevron_right),
+                    color: AppColors.inkWarm,
+                    tooltip: 'Next month',
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: AppSpacing.md),
             if (events.isEmpty)
@@ -96,8 +119,7 @@ class _AdminCalendarScreenState extends ConsumerState<AdminCalendarScreen> {
             else
               for (var i = 0; i < events.length; i++) ...[
                 _EventRow(event: events[i]),
-                if (i != events.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                if (i != events.length - 1) const SizedBox(height: 10),
               ],
           ],
         ),
@@ -112,6 +134,16 @@ final _adminCalendarProvider = FutureProvider.autoDispose
   return calendar.eventsForMonth(DateTime(month.year, month.month));
 });
 
+/// Maps an event category to its warm-premium tone + accent colour.
+({BadgeTone tone, Color accent}) _toneFor(CalendarEventType type) {
+  return switch (type) {
+    CalendarEventType.offDay => (tone: BadgeTone.slate, accent: AppColors.slateWarm),
+    CalendarEventType.holiday => (tone: BadgeTone.clay, accent: AppColors.claySoftReject),
+    CalendarEventType.festival => (tone: BadgeTone.gold, accent: AppColors.goldSoftAccent),
+    CalendarEventType.event => (tone: BadgeTone.forest, accent: AppColors.forestSoft),
+  };
+}
+
 class _EventRow extends StatelessWidget {
   const _EventRow({required this.event});
 
@@ -119,36 +151,52 @@ class _EventRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final style = event.type.style;
-    return ListRow(
-      leading: Container(
-        width: 36,
-        height: 36,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppRadius.sm - 4),
-          border: Border.all(color: AppColors.divider),
-        ),
-        child: Text(
-          '${event.date.day}',
-          style: AppTextStyles.statSmall,
-        ),
-      ),
+    final t = _toneFor(event.type);
+    return AccentRow(
+      accent: t.accent,
+      lead: _DayBadge(day: event.date.day, accent: t.accent),
       title: event.label,
       subtitle: DateFormat('EEEE, d MMM yyyy').format(event.date),
-      status: StatusBadge.status(style: style),
-      trailing: event.isPaid
-          ? StatusBadge(
-              label: 'Paid',
-              style: styleFor(
-                StatusTone.positive,
-                icon: Icons.payments_outlined,
-                label: 'Paid',
-              ),
-            )
-          : null,
-      showChevron: false,
+      trailing: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          PremiumBadge(label: event.type.label, tone: t.tone),
+          if (event.isPaid) ...[
+            const SizedBox(height: 5),
+            const PremiumBadge(label: 'Paid', tone: BadgeTone.forest, dot: true),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Rounded tinted square showing the day-of-month for a calendar event.
+class _DayBadge extends StatelessWidget {
+  const _DayBadge({required this.day, required this.accent});
+
+  final int day;
+  final Color accent;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(13),
+      ),
+      child: Text(
+        '$day',
+        style: AppTextStyles.statSmall.copyWith(
+          fontFamily: AppTextStyles.monoFamily,
+          color: accent,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }

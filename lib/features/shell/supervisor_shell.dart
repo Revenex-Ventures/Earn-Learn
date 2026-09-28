@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
 import 'app_shell.dart';
@@ -52,6 +53,9 @@ class SupervisorShell extends ConsumerWidget {
         ),
       ],
       railHeader: const ShellMark(label: 'Supervisor'),
+      fabIcon: Icons.check_rounded,
+      fabGradient: AppColors.goldSoftGrad,
+      onFab: () => context.go(RoutePaths.supervisorAttendance),
       child: child,
     );
   }

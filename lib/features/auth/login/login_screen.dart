@@ -8,6 +8,7 @@ import '../../../core/design_system/app_spacing.dart';
 import '../../../core/design_system/app_text_styles.dart';
 import '../../../core/models/user_role.dart';
 import '../../../core/routing/route_paths.dart';
+import '../../../shared/components/warm_premium_kit.dart';
 import '../auth_session.dart';
 import '../credentials.dart';
 import '../role_selection/role_selector_provider.dart';
@@ -103,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final isCompact = MediaQuery.sizeOf(context).width < 360;
     final hPad = isCompact ? AppSpacing.md : AppSpacing.xl;
     return Scaffold(
-      backgroundColor: AppColors.paper,
+      backgroundColor: AppColors.warmCanvas,
       body: Column(
         children: [
           _hero(isCompact),
@@ -119,18 +120,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _hero(bool isCompact) {
-    final dark = Color.lerp(_accent, Colors.black, 0.34)!;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_accent, dark],
-        ),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+        gradient: AppColors.accentGradient(_accent),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
         boxShadow: [
-          BoxShadow(color: _accent.withValues(alpha: 0.32), blurRadius: 24, offset: const Offset(0, 12)),
+          BoxShadow(color: _accent.withValues(alpha: 0.30), blurRadius: 30, offset: const Offset(0, 14)),
         ],
       ),
       child: SafeArea(
@@ -140,29 +136,38 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(children: [
-                _CircleIconButton(icon: Icons.arrow_back_rounded, onTap: () => context.go(RoutePaths.auth)),
-                const SizedBox(width: AppSpacing.sm),
-                Flexible(
-                  child: Text(
-                    'AVCOE  ·  Earn & Learn',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelSmall.copyWith(color: Colors.white.withValues(alpha: 0.92), fontWeight: FontWeight.w700, letterSpacing: 1.1, fontSize: 11),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  _CircleIconButton(icon: Icons.arrow_back_rounded, onTap: () => context.go(RoutePaths.auth)),
+                  const SizedBox(width: AppSpacing.sm),
+                  const Expanded(
+                    child: Eyebrow('AVCOE  ·  Earn & Learn', onDark: true),
                   ),
-                ),
-              ]),
+                ],
+              ),
               SizedBox(height: isCompact ? AppSpacing.lg : AppSpacing.xl),
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.18), borderRadius: BorderRadius.circular(AppRadius.md), border: Border.all(color: Colors.white.withValues(alpha: 0.28))),
-                child: Icon(_icon, color: Colors.white, size: 30),
+              WarmIconWell(
+                icon: _icon,
+                background: Colors.white.withValues(alpha: 0.16),
+                foreground: AppColors.onHeroWarm,
+                size: 60,
+                radius: AppRadius.md,
+                iconSize: 30,
               ),
               const SizedBox(height: AppSpacing.md),
-              Text('$_roleLabel Sign In', style: AppTextStyles.headlineMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800, fontSize: isCompact ? 24 : 28, letterSpacing: -0.5)),
+              Text('$_roleLabel Sign In', style: AppTextStyles.headlineMedium.copyWith(color: AppColors.onHeroWarm, fontWeight: FontWeight.w800, fontSize: isCompact ? 24 : 28, letterSpacing: -0.5)),
               const SizedBox(height: 4),
-              Text(_roleTagline, style: AppTextStyles.bodySmall.copyWith(color: Colors.white.withValues(alpha: 0.85), fontSize: 13, height: 1.35)),
+              Text(_roleTagline, style: AppTextStyles.bodySmall.copyWith(color: AppColors.onHeroWarm.withValues(alpha: 0.82), fontSize: 13, height: 1.35)),
+              const SizedBox(height: AppSpacing.md),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  HeroPill(label: _roleLabel, icon: _icon, gold: true),
+                  const HeroPill(label: 'Secure gate', icon: Icons.lock_rounded),
+                ],
+              ),
             ],
           ),
         ),
@@ -175,29 +180,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Container(
+        WarmCard(
           padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            border: Border.all(color: AppColors.divider),
-            boxShadow: [
-              BoxShadow(color: AppColors.ink.withValues(alpha: 0.05), blurRadius: 20, offset: const Offset(0, 8)),
-            ],
-          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              const Eyebrow('Credentials'),
+              const SizedBox(height: AppSpacing.md),
               _field(controller: _userCtrl, label: cred.identifierLabel, hint: 'e.g. ${cred.username}', icon: Icons.person_outline_rounded),
               const SizedBox(height: AppSpacing.md),
               _field(controller: _passCtrl, label: 'Password', hint: 'Enter password', icon: Icons.lock_outline_rounded, obscure: _obscure, onToggleObscure: () => setState(() => _obscure = !_obscure)),
               if (_error != null) ...[
                 const SizedBox(height: AppSpacing.md),
-                Row(children: [
-                  const Icon(Icons.error_outline_rounded, size: 16, color: AppColors.clay),
-                  const SizedBox(width: 6),
-                  Expanded(child: Text(_error!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.clay, fontSize: 12))),
-                ]),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: AppColors.clayTint,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
+                  ),
+                  child: Row(children: [
+                    const Icon(Icons.error_outline_rounded, size: 16, color: AppColors.claySoftReject),
+                    const SizedBox(width: 6),
+                    Expanded(child: Text(_error!, style: AppTextStyles.bodySmall.copyWith(color: AppColors.claySoftReject, fontSize: 12, fontWeight: FontWeight.w600))),
+                  ]),
+                ),
               ],
               const SizedBox(height: AppSpacing.lg),
               _submitButton(),
@@ -221,27 +227,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label.toUpperCase(), style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate, fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 10)),
+        Text(label.toUpperCase(), style: AppTextStyles.labelSmall.copyWith(color: AppColors.slateWarm, fontWeight: FontWeight.w800, letterSpacing: 0.8, fontSize: 10)),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
           obscureText: obscure,
           onSubmitted: (_) => _submit(),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.ink, fontWeight: FontWeight.w600),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.inkWarm, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.slate.withValues(alpha: 0.6)),
+            hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.slateWarm.withValues(alpha: 0.7)),
             prefixIcon: Icon(icon, size: 20, color: _accent),
             suffixIcon: onToggleObscure == null
                 ? null
                 : IconButton(
-                    icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: AppColors.slate),
+                    icon: Icon(obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 20, color: AppColors.slateWarm),
                     onPressed: onToggleObscure,
                   ),
             filled: true,
-            fillColor: AppColors.paper,
+            fillColor: AppColors.warmIvory,
             contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.divider)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: const BorderSide(color: AppColors.warmLine)),
             focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md), borderSide: BorderSide(color: _accent, width: 1.6)),
           ),
         ),
@@ -286,31 +292,40 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: _accent.withValues(alpha: 0.06),
+            color: AppColors.warmIvory,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: _accent.withValues(alpha: 0.28)),
+            border: Border.all(color: AppColors.warmLine),
+            boxShadow: WarmKit.shadowSm,
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.key_rounded, size: 18, color: _accent),
-              const SizedBox(width: AppSpacing.sm),
+              WarmIconWell(
+                icon: Icons.key_rounded,
+                gradient: AppColors.goldSoftGrad,
+                foreground: const Color(0xFF4A3915),
+                size: 36,
+                radius: 11,
+                iconSize: 18,
+              ),
+              const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Wrap(
                       spacing: 6,
-                      runSpacing: 2,
+                      runSpacing: 4,
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Text('SANDBOX DEMO LOGIN', style: AppTextStyles.labelSmall.copyWith(color: _accent, fontWeight: FontWeight.w800, letterSpacing: 0.8, fontSize: 10)),
-                        Text('· tap to fill', style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate, fontSize: 10)),
+                        const PremiumBadge(label: 'SANDBOX DEMO', tone: BadgeTone.gold),
+                        Text('tap to fill', style: AppTextStyles.labelSmall.copyWith(color: AppColors.slateWarm, fontSize: 10, fontWeight: FontWeight.w600)),
                       ],
                     ),
-                    const SizedBox(height: 4),
-                    Text('${cred.identifierLabel}: ${cred.username}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkSoft, fontSize: 12, fontWeight: FontWeight.w600)),
-                    Text('Password: ${DemoCredentials.password}', style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkSoft, fontSize: 12, fontWeight: FontWeight.w600)),
+                    const SizedBox(height: AppSpacing.sm),
+                    _demoLine(cred.identifierLabel, cred.username),
+                    const SizedBox(height: 3),
+                    _demoLine('Password', DemoCredentials.password),
                   ],
                 ),
               ),
@@ -318,6 +333,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _demoLine(String label, String value) {
+    return Wrap(
+      spacing: 6,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        Text('$label:', style: AppTextStyles.bodySmall.copyWith(color: AppColors.slateWarm, fontSize: 12, fontWeight: FontWeight.w600)),
+        Text(value, style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkWarm, fontSize: 12, fontWeight: FontWeight.w800)),
+      ],
     );
   }
 }

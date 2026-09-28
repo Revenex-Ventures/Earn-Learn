@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import 'app_colors.dart';
-
 /// Shared elevation (shadow) tokens for consistent depth across the app.
 /// Additive — existing screens can opt in without breaking changes.
 class AppElevation {
   AppElevation._();
 
   /// Standard card elevation for metric cards, nav tiles, surface containers.
+  /// Warm, low-alpha shadow — soft depth without the heavy dark drop that made
+  /// surfaces feel harsh on open.
   static const List<BoxShadow> card = [
     BoxShadow(
-      color: AppColors.ink,
-      blurRadius: 18,
-      offset: Offset(0, 8),
+      color: Color(0x0E2B2620), // rgba(43,38,32,0.055)
+      blurRadius: 14,
+      offset: Offset(0, 6),
       spreadRadius: 0,
     ),
   ];
@@ -21,9 +21,9 @@ class AppElevation {
   /// Uses accent-tinted shadow — caller should use [heroFor] with the accent colour.
   static List<BoxShadow> heroFor(Color accent) => [
     BoxShadow(
-      color: accent.withValues(alpha: 0.30),
-      blurRadius: 24,
-      offset: const Offset(0, 12),
+      color: accent.withValues(alpha: 0.20),
+      blurRadius: 34,
+      offset: const Offset(0, 14),
       spreadRadius: 0,
     ),
   ];

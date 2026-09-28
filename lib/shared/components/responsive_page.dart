@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 
-/// Content width guard for tablet layouts. On phones it spans full width;
-/// on wider screens it centers content up to [maxWidth] so sparse rows and
-/// metric groups stay readable.
+/// Content-width guard.
+///
+/// AppShell locks the whole experience to a ~460px phone column, so on the
+/// live layout this widget simply returns its child unchanged — structurally
+/// identical to the student Home screen body, which renders correctly.
+///
+/// It must never introduce a `LayoutBuilder`, `Align`, or `Center` at the top
+/// level: those are laid out with the enclosing `SingleChildScrollView`'s
+/// unbounded height and either assert (`LayoutBuilder`) or collapse the body
+/// to zero size, leaving the page blank while the nav still renders. Passing
+/// the child straight through avoids all of that.
+///
+/// [maxWidth] is retained for API compatibility; it is only honoured through
+/// the optional [horizontalPadding] gutter, never via a constraint-reading
+/// wrapper.
 class ResponsivePage extends StatelessWidget {
   const ResponsivePage({
     super.key,
@@ -17,15 +29,12 @@ class ResponsivePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: maxWidth),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-          child: child,
-        ),
-      ),
+    if (horizontalPadding <= 0) {
+      return child;
+    }
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: child,
     );
   }
 }

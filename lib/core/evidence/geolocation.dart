@@ -10,11 +10,17 @@ abstract class GeoSampler {
 
 class GeolocatorSampler implements GeoSampler {
   const GeolocatorSampler({
-    this.timeLimit = const Duration(seconds: 15),
-    this.maxAccuracyMeters = 150.0,
+    this.timeLimit = const Duration(seconds: 30),
+    // TEMPORARY (until campus coordinates + geofence land): accept any real
+    // device fix so location never blocks a check-in. The 150 m accuracy gate
+    // used to reject weak/indoor fixes with "GPS signal is weak"; while there
+    // are no coordinates to validate against, that strictness only gets in the
+    // way. Restore a tighter value (e.g. 150) and add the geofence check once
+    // location coordinates are configured.
+    this.maxAccuracyMeters = 100000.0,
   });
 
-  static const Duration defaultTimeLimit = Duration(seconds: 15);
+  static const Duration defaultTimeLimit = Duration(seconds: 30);
   final Duration timeLimit;
   final double maxAccuracyMeters;
 

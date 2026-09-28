@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/routing/route_paths.dart';
@@ -72,64 +71,86 @@ class _AdminManageView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ContextHeader(
-              greeting: 'Manage',
-              trailing: AdminIdentityAvatar(),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Program office'),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Manage',
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                const AdminIdentityAvatar(),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'DIRECTORIES',
+            const SectionEyebrow(
+              eyebrow: 'Directory',
               title: 'Program records',
-              subtitle: 'Every directory with its current live count.',
             ),
-            const SizedBox(height: AppSpacing.md),
-            _DirectoryTile(
+            _DirectoryRow(
               icon: Icons.school_outlined,
               title: 'Students',
               subtitle: 'Registered roster',
               count: data.students,
-              color: AppColors.sage,
+              accent: AppColors.forestSoft,
+              gradient: AppColors.heroForest,
               onTap: () => context.go(RoutePaths.adminStudents),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _DirectoryTile(
+            const SizedBox(height: 10),
+            _DirectoryRow(
               icon: Icons.supervisor_account_outlined,
               title: 'Supervisors',
               subtitle: 'Duty staff',
               count: data.supervisors,
-              color: AppColors.marigold,
+              accent: AppColors.goldSoftAccent,
+              gradient: AppColors.goldSoftGrad,
+              iconFg: const Color(0xFF4A3915),
               onTap: () => context.go(RoutePaths.adminSupervisors),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _DirectoryTile(
+            const SizedBox(height: 10),
+            _DirectoryRow(
               icon: Icons.location_on_outlined,
               title: 'Locations',
               subtitle: 'Work zones',
               count: data.locations,
-              color: AppColors.info,
+              accent: AppColors.infoSoft,
+              background: AppColors.infoSoft,
               onTap: () => context.go(RoutePaths.adminLocations),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _DirectoryTile(
+            const SizedBox(height: 10),
+            _DirectoryRow(
               icon: Icons.assignment_outlined,
               title: 'Assignments',
               subtitle: 'Active shifts',
               count: data.assignments,
-              color: AppColors.inkSoft,
+              accent: AppColors.forestSoftBright,
+              background: AppColors.forestSoftBright,
               onTap: () => context.go(RoutePaths.adminAssignments),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _DirectoryTile(
+            const SizedBox(height: 10),
+            _DirectoryRow(
               icon: Icons.event_note_outlined,
               title: 'Calendar',
               subtitle: 'Off days & holidays this month',
               count: data.monthEvents,
-              color: AppColors.clay,
+              accent: AppColors.claySoftReject,
+              background: AppColors.claySoftReject,
               onTap: () => context.go(RoutePaths.adminCalendar),
             ),
           ],
@@ -139,62 +160,58 @@ class _AdminManageView extends StatelessWidget {
   }
 }
 
-/// Hub tile: IconWell, title, description and the real trailing count.
-class _DirectoryTile extends StatelessWidget {
-  const _DirectoryTile({
+/// Directory entry point: gradient/solid [WarmIconWell] lead, title/subtitle
+/// and the real live count next to a chevron.
+class _DirectoryRow extends StatelessWidget {
+  const _DirectoryRow({
     required this.icon,
     required this.title,
     required this.subtitle,
     required this.count,
+    required this.accent,
     required this.onTap,
-    this.color = AppColors.ink,
+    this.gradient,
+    this.background,
+    this.iconFg = AppColors.onHeroWarm,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final int count;
+  final Color accent;
   final VoidCallback onTap;
-  final Color color;
+  final Gradient? gradient;
+  final Color? background;
+  final Color iconFg;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: AppColors.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: const BorderSide(color: AppColors.divider),
+    return AccentRow(
+      accent: accent,
+      lead: WarmIconWell(
+        icon: icon,
+        gradient: gradient,
+        background: background,
+        foreground: iconFg,
       ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.lg,
-            vertical: AppSpacing.md,
+      title: title,
+      subtitle: subtitle,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '$count',
+            style: AppTextStyles.statSmall.copyWith(
+              fontFamily: AppTextStyles.monoFamily,
+              color: AppColors.inkWarm,
+            ),
           ),
-          child: Row(
-            children: [
-              IconWell(icon: icon, color: color),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: AppTextStyles.titleMedium),
-                    const SizedBox(height: 2),
-                    Text(subtitle, style: AppTextStyles.bodySmall),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Text('$count', style: AppTextStyles.statMedium),
-              const SizedBox(width: AppSpacing.xs),
-              const Icon(Icons.chevron_right, size: 20, color: AppColors.slate),
-            ],
-          ),
-        ),
+          const SizedBox(width: AppSpacing.xs),
+          const RowChevron(),
+        ],
       ),
+      onTap: onTap,
     );
   }
 }

@@ -19,7 +19,9 @@ class AvcoeLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     final effectiveWidth = width ?? (height * 1.41);
     return Image.asset(
-      'assets/branding/avcoe_logo.png',
+      // Background-removed crest: the outer white plate is transparent so the
+      // logo sits directly on any surface (warm canvas, gradient, card).
+      'assets/branding/avcoe_logo_transparent.png',
       height: height,
       width: effectiveWidth,
       fit: fit,

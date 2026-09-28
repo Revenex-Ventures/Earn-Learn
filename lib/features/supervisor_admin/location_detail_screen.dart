@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_spacing.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
@@ -100,93 +100,185 @@ class _AdminLocationDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final location = data.location!;
+    final hasCoords = location.latitude != null && location.longitude != null;
+    final coords = hasCoords
+        ? '${location.latitude!.toStringAsFixed(5)}, '
+            '${location.longitude!.toStringAsFixed(5)}'
+        : 'Configuration required';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: location.name,
-              trailing: StatusBadge.status(style: location.status.style),
+            Row(
+              children: [
+                const WarmIconWell(
+                  icon: Icons.location_on_outlined,
+                  gradient: AppColors.heroForest,
+                  foreground: AppColors.onHeroWarm,
+                  size: 44,
+                  radius: 14,
+                  iconSize: 20,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Work zone'),
+                      const SizedBox(height: 2),
+                      Text(
+                        location.name,
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                          color: AppColors.inkWarm,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                PremiumBadge(
+                  label: location.status.label,
+                  tone: _locationTone(location.status),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'ZONE',
-              title: 'Description',
+            WarmCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Eyebrow('Zone dossier'),
+                  const SizedBox(height: 6),
+                  InfoLine(
+                    label: 'Description',
+                    value: location.description ?? 'Not specified',
+                  ),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Coordinates',
+                    value: coords,
+                    valueColor: hasCoords ? null : AppColors.claySoftReject,
+                  ),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Geofence radius',
+                    value: '${location.radiusMeters.toStringAsFixed(0)} m',
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            ListRow(
-              leading: const IconWell(icon: Icons.location_on_outlined),
-              title: location.description ?? 'Campus work area',
-              showChevron: false,
+            const SizedBox(height: 14),
+            MetricTileGrid(
+              items: [
+                MetricTileData(
+                  label: 'Supervisors',
+                  value: '${data.supervisors.length}',
+                  desc: 'in charge',
+                  tone: BadgeTone.forest,
+                ),
+                MetricTileData(
+                  label: 'Stationed',
+                  value: '${data.stationedStudents.length}',
+                  desc: 'students',
+                  tone: BadgeTone.gold,
+                ),
+                MetricTileData(
+                  label: 'Shifts',
+                  value: '${data.shiftLabels.length}',
+                  desc: 'windows',
+                  tone: BadgeTone.info,
+                ),
+              ],
             ),
-            const SizedBox(height: AppSpacing.xxl),
-            SectionHeader(
-              eyebrow: 'SUPERVISORS',
-              title: 'Supervisors in charge',
-              subtitle: '${data.supervisors.length} assigned',
+            if (!hasCoords) ...[
+              const SizedBox(height: 14),
+              const NoteBox(
+                icon: Icons.place_outlined,
+                text:
+                    'Geofence coordinates are Configuration required for this '
+                    'site — zone verification stays dormant until they are set.',
+              ),
+            ],
+            SectionEyebrow(
+              eyebrow: 'Supervisors',
+              title: 'In charge',
+              trailing: PremiumBadge(
+                label: '${data.supervisors.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             if (data.supervisors.isEmpty)
-              const EmptyState(
-                icon: Icons.person_search_outlined,
-                title: 'No supervisors',
-                message: 'No supervisor is assigned to this work zone.',
+              const NoteBox(
+                text: 'No supervisor is assigned to this work zone.',
               )
             else
               for (var i = 0; i < data.supervisors.length; i++) ...[
                 _SupervisorRow(supervisor: data.supervisors[i]),
                 if (i != data.supervisors.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 10),
               ],
-            const SizedBox(height: AppSpacing.xxl),
-            SectionHeader(
-              eyebrow: 'STATIONED',
+            SectionEyebrow(
+              eyebrow: 'Stationed',
               title: 'Students stationed',
-              subtitle: '${data.stationedStudents.length} assigned',
+              trailing: PremiumBadge(
+                label: '${data.stationedStudents.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             if (data.stationedStudents.isEmpty)
-              const EmptyState(
-                icon: Icons.person_off_outlined,
-                title: 'No students stationed',
-                message: 'No assignment currently routes students here.',
+              const NoteBox(
+                text: 'No assignment currently routes students here.',
               )
             else
               for (var i = 0; i < data.stationedStudents.length; i++) ...[
-                ListRow(
-                  leading: const IconWell(icon: Icons.person_outline),
+                AccentRow(
+                  accent: AppColors.forestSoftBright,
+                  lead: InitialsBubble(
+                    initials: data.stationedStudents[i].initials,
+                    gradient: AppColors.heroForest,
+                  ),
                   title: data.stationedStudents[i].name,
                   subtitle: data.stationedStudents[i].rollNumber,
-                  showChevron: false,
                 ),
                 if (i != data.stationedStudents.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 10),
               ],
-            const SizedBox(height: AppSpacing.xxl),
-            const SectionHeader(
-              eyebrow: 'SHIFTS',
+            SectionEyebrow(
+              eyebrow: 'Shifts',
               title: 'Shift windows',
-              subtitle: 'Labels present across this location’s assignments.',
+              trailing: PremiumBadge(
+                label: '${data.shiftLabels.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             if (data.shiftLabels.isEmpty)
-              const EmptyState(
-                icon: Icons.schedule_outlined,
-                title: 'No shifts',
-                message: 'No shift windows are defined for this location.',
+              const NoteBox(
+                text: 'No shift windows are defined for this location.',
               )
             else
               for (var i = 0; i < data.shiftLabels.length; i++) ...[
-                ListRow(
-                  leading: const IconWell(icon: Icons.schedule_outlined),
+                AccentRow(
+                  accent: AppColors.goldSoftAccent,
+                  lead: const WarmIconWell(
+                    icon: Icons.schedule_outlined,
+                    gradient: AppColors.goldSoftGrad,
+                    foreground: Color(0xFF4A3915),
+                  ),
                   title: data.shiftLabels[i],
-                  showChevron: false,
+                  subtitle: 'Shift window',
                 ),
                 if (i != data.shiftLabels.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: 10),
               ],
           ],
         ),
@@ -202,12 +294,32 @@ class _SupervisorRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListRow(
-      leading: const IconWell(icon: Icons.badge_outlined),
+    final (tone, accent) = _supervisorTone(supervisor.status);
+    return AccentRow(
+      accent: accent,
+      lead: InitialsBubble(
+        initials: supervisor.initials,
+        gradient: AppColors.goldSoftGrad,
+        foreground: const Color(0xFF4A3915),
+      ),
       title: supervisor.name,
       subtitle: supervisor.departmentOrNA,
-      status: StatusBadge.status(style: supervisor.status.style),
-      showChevron: false,
+      trailing: PremiumBadge(label: supervisor.status.label, tone: tone),
     );
   }
 }
+
+/// Badge tone for a [LocationStatus].
+BadgeTone _locationTone(LocationStatus status) => switch (status) {
+      LocationStatus.active => BadgeTone.forest,
+      LocationStatus.attention => BadgeTone.gold,
+      LocationStatus.inactive => BadgeTone.slate,
+    };
+
+/// Maps a [SupervisorStatus] to a warm badge tone and left-accent colour.
+(BadgeTone, Color) _supervisorTone(SupervisorStatus status) => switch (status) {
+      SupervisorStatus.onDuty => (BadgeTone.forest, AppColors.forestSoftBright),
+      SupervisorStatus.offDuty => (BadgeTone.slate, AppColors.slateWarm),
+      SupervisorStatus.unavailable =>
+        (BadgeTone.clay, AppColors.claySoftReject),
+    };

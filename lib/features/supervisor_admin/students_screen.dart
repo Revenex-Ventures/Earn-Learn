@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_spacing.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
@@ -67,22 +67,25 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
     ];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: 'Students',
-              trailing: AdminIdentityAvatar(),
+            const _DirectoryHeader(
+              icon: Icons.groups_outlined,
+              eyebrow: 'Roster',
+              title: 'Students',
             ),
-            const SizedBox(height: AppSpacing.lg),
-            SectionHeader(
-              eyebrow: 'ROSTER',
-              title: 'Registered students',
-              subtitle: '${filtered.length} of ${data.students.length} shown',
+            SectionEyebrow(
+              eyebrow: 'Registered students',
+              title: 'Institutional roster',
+              trailing: PremiumBadge(
+                label: '${filtered.length} of ${data.students.length}',
+                tone: BadgeTone.slate,
+              ),
             ),
-            const SizedBox(height: AppSpacing.md),
             SearchFilterBar(
               hintText: 'Search by name or Earn & Learn ID',
               initialQuery: _query,
@@ -103,8 +106,7 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
             else
               for (var i = 0; i < filtered.length; i++) ...[
                 _StudentRow(student: filtered[i]),
-                if (i != filtered.length - 1)
-                  const SizedBox(height: AppSpacing.sm),
+                if (i != filtered.length - 1) const SizedBox(height: 10),
               ],
           ],
         ),
@@ -120,13 +122,84 @@ class _StudentRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListRow(
-      leading: const IconWell(icon: Icons.person_outline),
+    final (tone, accent) = _accountTone(student.status);
+    return AccentRow(
+      accent: accent,
+      lead: InitialsBubble(
+        initials: student.initials,
+        gradient: AppColors.heroForest,
+      ),
       title: student.name,
       subtitle:
           '${student.rollNumber} • ${student.departmentOrNA} • ${student.classOrNA}',
-      status: StatusBadge.status(style: student.status.style),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PremiumBadge(label: student.status.label, tone: tone),
+          const SizedBox(width: 8),
+          const RowChevron(),
+        ],
+      ),
       onTap: () => context.go('/admin/students/${student.id}'),
     );
   }
 }
+
+/// Warm-premium page header for the admin directory screens.
+class _DirectoryHeader extends StatelessWidget {
+  const _DirectoryHeader({
+    required this.icon,
+    required this.eyebrow,
+    required this.title,
+  });
+
+  final IconData icon;
+  final String eyebrow;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        WarmIconWell(
+          icon: icon,
+          gradient: AppColors.heroForest,
+          foreground: AppColors.onHeroWarm,
+          size: 44,
+          radius: 14,
+          iconSize: 20,
+        ),
+        const SizedBox(width: 11),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Eyebrow(eyebrow),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontFamily: 'Manrope',
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                  height: 1.05,
+                  color: AppColors.inkWarm,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        const AdminIdentityAvatar(),
+      ],
+    );
+  }
+}
+
+/// Maps an [AccountStatus] to a warm badge tone and left-accent colour.
+(BadgeTone, Color) _accountTone(AccountStatus status) => switch (status) {
+      AccountStatus.active => (BadgeTone.forest, AppColors.forestSoftBright),
+      AccountStatus.pending => (BadgeTone.gold, AppColors.goldSoftAccent),
+      AccountStatus.inactive => (BadgeTone.slate, AppColors.slateWarm),
+    };

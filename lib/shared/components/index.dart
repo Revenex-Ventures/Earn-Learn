@@ -27,5 +27,6 @@ export 'student_duty_hero_card.dart';
 export 'timeline_row.dart';
 export 'today_panel.dart';
 export 'upcoming_shift_tile.dart';
+export 'warm_premium_kit.dart';
 export 'week_attendance_strip.dart';
 export 'work_zone.dart';

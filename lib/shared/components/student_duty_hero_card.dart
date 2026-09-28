@@ -30,6 +30,9 @@ class StudentDutyHeroCard extends StatelessWidget {
     this.isOffDay = false,
     this.now,
     this.onPrimaryAction,
+    this.verifiedHours,
+    this.maxMonthlyHours,
+    this.daysWorked,
   });
 
   final String location;
@@ -42,6 +45,11 @@ class StudentDutyHeroCard extends StatelessWidget {
   final bool isOffDay;
   final DateTime? now;
   final VoidCallback? onPrimaryAction;
+
+  /// Optional headline stats shown in the translucent strip (warm-premium look).
+  final double? verifiedHours;
+  final int? maxMonthlyHours;
+  final int? daysWorked;
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +84,7 @@ class StudentDutyHeroCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: AppColors.heroGradient,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: AppElevation.heroFor(AppColors.primaryBright),
+        boxShadow: AppElevation.heroFor(AppColors.forestSoftDeep),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -156,6 +164,50 @@ class StudentDutyHeroCard extends StatelessWidget {
                 StatusBadge.status(style: stateStyle),
             ],
           ),
+          if (verifiedHours != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+              ),
+              child: Row(
+                children: [
+                  _HeroStat(
+                    value: verifiedHours!.toStringAsFixed(verifiedHours! % 1 == 0 ? 0 : 1),
+                    label: 'Verified hrs',
+                  ),
+                  _HeroDivider(),
+                  _HeroStat(
+                    value: (daysWorked ?? 0).toString(),
+                    label: 'Days worked',
+                  ),
+                  _HeroDivider(),
+                  _HeroStat(
+                    value: maxMonthlyHours == null
+                        ? '—'
+                        : '${(maxMonthlyHours! - verifiedHours!).clamp(0, maxMonthlyHours!).toStringAsFixed(0)}h',
+                    label: 'To ceiling',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: const [
+                Expanded(child: _TrustCell(icon: Icons.place_outlined, label: 'Zone', value: 'Geo-lock')),
+                SizedBox(width: AppSpacing.sm),
+                Expanded(child: _TrustCell(icon: Icons.photo_camera_outlined, label: 'Selfie', value: 'Verified')),
+                SizedBox(width: AppSpacing.sm),
+                Expanded(child: _TrustCell(icon: Icons.verified_user_outlined, label: 'Sign-off', value: 'Supervisor')),
+              ],
+            ),
+          ],
           if (supervisorName != null || (workDescription != null && workDescription!.isNotEmpty)) ...[
             const SizedBox(height: AppSpacing.md),
             const Divider(height: 1, color: Colors.white),
@@ -361,6 +413,102 @@ class _MetaRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _HeroStat extends StatelessWidget {
+  const _HeroStat({required this.value, required this.label});
+
+  final String value;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            value,
+            style: AppTextStyles.statMedium.copyWith(color: Colors.white),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: Colors.white.withValues(alpha: 0.78),
+              fontSize: 9.5,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _HeroDivider extends StatelessWidget {
+  const _HeroDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 30,
+      margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      color: Colors.white.withValues(alpha: 0.16),
+    );
+  }
+}
+
+class _TrustCell extends StatelessWidget {
+  const _TrustCell({required this.icon, required this.label, required this.value});
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: Colors.white.withValues(alpha: 0.9)),
+          const SizedBox(height: 6),
+          Text(
+            label.toUpperCase(),
+            style: AppTextStyles.labelSmall.copyWith(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 8.5,
+              letterSpacing: 0.6,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 1),
+          Text(
+            value,
+            style: AppTextStyles.labelMedium.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

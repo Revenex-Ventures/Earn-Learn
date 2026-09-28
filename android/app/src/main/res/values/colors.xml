@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Warm canvas used behind the Flutter UI while it initializes, so the
+         app opens on-brand instead of flashing white. Matches AppColors.warmCanvas. -->
+    <color name="warm_canvas">#F6F3EC</color>
+</resources>

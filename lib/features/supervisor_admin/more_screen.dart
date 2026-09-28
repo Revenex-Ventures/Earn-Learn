@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/design_system/app_colors.dart';
-import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
 import '../../core/routing/route_paths.dart';
@@ -17,70 +16,96 @@ class AdminMoreScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const ContextHeader(
-              greeting: 'More',
-              trailing: AdminIdentityAvatar(),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Program office'),
+                      const SizedBox(height: 2),
+                      Text(
+                        'More',
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                const AdminIdentityAvatar(),
+              ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            const SectionHeader(
-              eyebrow: 'GOVERNANCE',
+            const SectionEyebrow(
+              eyebrow: 'Governance',
               title: 'Program office',
             ),
-            const SizedBox(height: AppSpacing.md),
-            _HubTile(
-              icon: Icons.payments_outlined,
+            AccentRow(
+              accent: AppColors.goldSoftAccent,
+              lead: const WarmIconWell(
+                icon: Icons.payments_outlined,
+                gradient: AppColors.goldSoftGrad,
+                foreground: Color(0xFF4A3915),
+              ),
               title: 'Payroll',
               subtitle: 'Monthly disbursement',
+              trailing: const RowChevron(),
               onTap: () => context.go(RoutePaths.adminPayroll),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _HubTile(
-              icon: Icons.bar_chart_outlined,
+            const SizedBox(height: 10),
+            AccentRow(
+              accent: AppColors.infoSoft,
+              lead: const WarmIconWell(
+                icon: Icons.bar_chart_outlined,
+                background: AppColors.infoSoft,
+                foreground: AppColors.onHeroWarm,
+              ),
               title: 'Reports',
               subtitle: 'Coverage & disbursement',
+              trailing: const RowChevron(),
               onTap: () => context.go(RoutePaths.adminReports),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _HubTile(
-              icon: Icons.person_outline,
+            const SizedBox(height: 10),
+            AccentRow(
+              accent: AppColors.forestSoft,
+              lead: const WarmIconWell(
+                icon: Icons.person_outline,
+                gradient: AppColors.heroForest,
+                foreground: AppColors.onHeroWarm,
+              ),
               title: 'Profile',
               subtitle: 'Administrator account',
+              trailing: const RowChevron(),
               onTap: () => context.go(RoutePaths.adminProfile),
             ),
-            const SizedBox(height: AppSpacing.xxl),
-            const SectionHeader(
-              eyebrow: 'ABOUT',
+            const SectionEyebrow(
+              eyebrow: 'About',
               title: 'Earn & Learn',
             ),
-            const SizedBox(height: AppSpacing.md),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
+            const WarmCard(
               child: Column(
                 children: [
-                  _AboutRow(label: 'Version', value: '1.0.0'),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _AboutRow(
+                  InfoLine(label: 'Version', value: '1.0.0'),
+                  HairDivider(),
+                  InfoLine(
                     label: 'Institution',
                     value: 'Amrutvahini College of Engineering (AVCOE)',
                   ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _AboutRow(
+                  HairDivider(),
+                  InfoLine(
                     label: 'Office',
                     value: 'Student Development Office',
                   ),
-                  const Divider(height: 1, color: AppColors.divider),
-                  _AboutRow(
+                  HairDivider(),
+                  InfoLine(
                     label: 'SDO contact',
                     value: 'sdo@amrutvahini.edu.in',
                   ),
@@ -89,59 +114,6 @@ class AdminMoreScreen extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _HubTile extends StatelessWidget {
-  const _HubTile({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListRow(
-      leading: IconWell(icon: icon),
-      title: title,
-      subtitle: subtitle,
-      onTap: onTap,
-    );
-  }
-}
-
-class _AboutRow extends StatelessWidget {
-  const _AboutRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 96,
-            child: Text(
-              label.toUpperCase(),
-              style: AppTextStyles.labelSmall.copyWith(letterSpacing: 0.8),
-            ),
-          ),
-          Expanded(
-            child: Text(value, style: AppTextStyles.bodyMedium),
-          ),
-        ],
       ),
     );
   }

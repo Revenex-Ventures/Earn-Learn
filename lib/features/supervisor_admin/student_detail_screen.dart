@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
@@ -102,16 +103,47 @@ class _AdminStudentDetailView extends StatelessWidget {
   Widget build(BuildContext context) {
     final student = data.student;
     final supervisor = data.supervisor;
+    final (tone, _) = _accountTone(student.status);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: student.name,
-              trailing: InitialsAvatar(name: student.name),
+            Row(
+              children: [
+                InitialsBubble(
+                  initials: student.initials,
+                  gradient: AppColors.heroForest,
+                  size: 44,
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Eyebrow('Student dossier'),
+                      const SizedBox(height: 2),
+                      Text(
+                        student.name,
+                        style: const TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                          color: AppColors.inkWarm,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 10),
+                PremiumBadge(label: student.status.label, tone: tone),
+              ],
             ),
             const SizedBox(height: AppSpacing.lg),
             StudentDossierView(
@@ -133,3 +165,10 @@ class _AdminStudentDetailView extends StatelessWidget {
     );
   }
 }
+
+/// Maps an [AccountStatus] to a warm badge tone and left-accent colour.
+(BadgeTone, Color) _accountTone(AccountStatus status) => switch (status) {
+      AccountStatus.active => (BadgeTone.forest, AppColors.forestSoftBright),
+      AccountStatus.pending => (BadgeTone.gold, AppColors.goldSoftAccent),
+      AccountStatus.inactive => (BadgeTone.slate, AppColors.slateWarm),
+    };

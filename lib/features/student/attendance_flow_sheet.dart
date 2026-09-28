@@ -124,39 +124,46 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
               // Grab handle
               Center(
                 child: Container(
-                  width: 36,
+                  width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: AppColors.divider,
-                    borderRadius: BorderRadius.circular(2),
+                    color: AppColors.warmLine,
+                    borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
                 ),
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.md),
 
               // Context Header
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  WarmIconWell(
+                    icon: isCheckIn ? Icons.login_rounded : Icons.logout_rounded,
+                    gradient: AppColors.heroForest,
+                    size: 42,
+                    radius: AppRadius.sm,
+                    iconSize: 20,
+                  ),
+                  const SizedBox(width: AppSpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Eyebrow('Evidence Verification'),
+                        const SizedBox(height: 2),
                         Text(
-                          'EVIDENCE VERIFICATION',
-                          style: AppTextStyles.labelSmall.copyWith(
-                            color: AppColors.slate,
-                            letterSpacing: 0.6,
-                            fontSize: 10,
+                          title,
+                          style: AppTextStyles.titleLarge.copyWith(
+                            color: AppColors.inkWarm,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
-                        const SizedBox(height: 1),
-                        Text(title, style: AppTextStyles.titleLarge),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: 3),
                         Text(
                           '${widget.locationName} • In-charge: ${widget.supervisorName} • $shiftLabel',
                           style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.slate,
+                            color: AppColors.slateWarm,
                           ),
                         ),
                       ],
@@ -164,14 +171,14 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                   ),
                   IconButton(
                     onPressed: uiState.busy ? null : () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, size: 20),
+                    icon: const Icon(Icons.close, size: 20, color: AppColors.slateWarm),
                     visualDensity: VisualDensity.compact,
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.xs),
-              const Divider(color: AppColors.divider, height: 1),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
+              const HairDivider(),
+              const SizedBox(height: AppSpacing.md),
 
               // Visual 3-step indicator
               AttendanceStepper(
@@ -180,60 +187,27 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                 hasLocation: uiState.hasGeo,
                 isConfirmed: uiState.confirmedStatus != null,
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
 
               // Institutional instructions
-              Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  color: AppColors.paper,
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  border: Border.all(color: AppColors.divider),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(Icons.verified_user_outlined, size: 18, color: AppColors.ink),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        'AVCOE policy requires a live front-facing selfie and on-campus GPS fix to record verified hours.',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink, fontSize: 11),
-                      ),
-                    ),
-                  ],
-                ),
+              const NoteBox(
+                text: 'AVCOE policy requires a live front-facing selfie and on-campus GPS fix to record verified hours.',
+                icon: Icons.verified_user_outlined,
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: AppSpacing.md),
 
               // Early Check-out notice if applicable
               if (isEarlyCheckout) ...[
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.clayLight,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.clay.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.info_outline, size: 20, color: AppColors.clay),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Text(
-                          'Early Check-Out: Scheduled shift is still in progress. Actual verified hours will be logged up to this timestamp.',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SoftBox(
+                  label: 'Early Check-Out: Scheduled shift is still in progress. Actual verified hours will be logged up to this timestamp.',
+                  tone: BadgeTone.terra,
+                  icon: Icons.info_outline,
                 ),
                 const SizedBox(height: AppSpacing.md),
               ],
 
               // Evidence Checklist / Acquisition
-              Text('REQUIRED EVIDENCE', style: AppTextStyles.labelSmall),
+              const Eyebrow('Required Evidence'),
               const SizedBox(height: AppSpacing.sm),
 
               _EvidenceItemTile(
@@ -295,28 +269,10 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
 
               // Evidence Summary preview when complete
               if (uiState.isEvidenceComplete) ...[
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.sageLight,
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: AppColors.sage.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: AppColors.sage, size: 20),
-                      const SizedBox(width: AppSpacing.md),
-                      Expanded(
-                        child: Text(
-                          'Both evidence components acquired. Ready for server submission.',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.ink,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                const SoftBox(
+                  label: 'Both evidence components acquired. Ready for server submission.',
+                  tone: BadgeTone.forest,
+                  icon: Icons.check_circle,
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],
@@ -333,7 +289,9 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                         icon: const Icon(Icons.auto_awesome, size: 16),
                         label: const Text('Capture Both'),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          foregroundColor: AppColors.goldSoftDeep,
+                          side: const BorderSide(color: AppColors.warmLine),
+                          padding: const EdgeInsets.symmetric(vertical: 15),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
@@ -353,9 +311,12 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                             }
                           : null,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.ink,
-                        foregroundColor: AppColors.surface,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        backgroundColor: AppColors.terraSpark,
+                        foregroundColor: AppColors.onHeroWarm,
+                        disabledBackgroundColor: AppColors.warmIvory,
+                        disabledForegroundColor: AppColors.slateWarm,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
@@ -366,15 +327,15 @@ class _AttendanceFlowSheetState extends ConsumerState<AttendanceFlowSheet> {
                               height: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: AppColors.surface,
+                                color: AppColors.onHeroWarm,
                               ),
                             )
                           : Text(
                               isCheckIn ? 'Submit Check-In' : 'Submit Check-Out',
                               style: AppTextStyles.labelLarge.copyWith(
                                 color: uiState.isEvidenceComplete
-                                    ? AppColors.surface
-                                    : AppColors.slate,
+                                    ? AppColors.onHeroWarm
+                                    : AppColors.slateWarm,
                               ),
                             ),
                     ),
@@ -401,35 +362,13 @@ class _FaceVerificationNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.paper,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            available ? Icons.face_retouching_natural : Icons.info_outline,
-            size: 16,
-            color: available ? AppColors.sage : AppColors.slate,
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(
-              available
-                  ? 'Same-person check available.'
-                  : 'Same-person check: configuration required, so this '
-                      'check-in is not face-verified.',
-              style: AppTextStyles.bodySmall,
-            ),
-          ),
-        ],
-      ),
+    return SoftBox(
+      icon: available ? Icons.face_retouching_natural : Icons.info_outline,
+      tone: available ? BadgeTone.forest : BadgeTone.info,
+      label: available
+          ? 'Same-person check available.'
+          : 'Same-person check: configuration required, so this '
+              'check-in is not face-verified.',
     );
   }
 }
@@ -458,29 +397,33 @@ class _EvidenceItemTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: isComplete ? AppColors.surface : AppColors.paper,
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        color: isComplete ? AppColors.warmSurface : AppColors.warmIvory,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
-          color: isComplete ? AppColors.sage : AppColors.divider,
+          color: isComplete ? AppColors.forestSoft : AppColors.warmLine,
           width: isComplete ? 1.5 : 1.0,
         ),
+        boxShadow: WarmKit.shadowSm,
       ),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: isComplete ? AppColors.sageLight : AppColors.divider.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
+              color: isComplete
+                  ? const Color(0xFFE9F6EE)
+                  : AppColors.goldTint,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             clipBehavior: Clip.antiAlias,
+            alignment: Alignment.center,
             child: imageBytes != null
                 ? Image.memory(imageBytes!, fit: BoxFit.cover)
                 : Icon(
-                    isComplete ? Icons.check : icon,
+                    isComplete ? Icons.check_rounded : icon,
                     size: 20,
-                    color: isComplete ? AppColors.sage : AppColors.ink,
+                    color: isComplete ? AppColors.forestSoft : AppColors.goldSoftDeep,
                   ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -490,23 +433,37 @@ class _EvidenceItemTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.inkWarm,
+                  ),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: isComplete ? AppColors.sage : AppColors.slate,
+                  style: TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isComplete ? AppColors.forestSoft : AppColors.slateWarm,
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
           TextButton(
             onPressed: onCapture,
             style: TextButton.styleFrom(
-              foregroundColor: isComplete ? AppColors.slate : AppColors.ink,
+              foregroundColor: isComplete ? AppColors.slateWarm : AppColors.terraSpark,
               visualDensity: VisualDensity.compact,
+              textStyle: const TextStyle(
+                fontFamily: 'Manrope',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             child: Text(actionLabel),
           ),
@@ -557,9 +514,9 @@ class _ErrorBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.clayLight,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.clay.withValues(alpha: 0.4)),
+        color: AppColors.clayTint,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.claySoftReject.withValues(alpha: 0.35)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -567,7 +524,13 @@ class _ErrorBanner extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.error_outline, color: AppColors.clay, size: 20),
+              const WarmIconWell(
+                icon: Icons.error_outline,
+                background: AppColors.claySoftReject,
+                size: 34,
+                radius: AppRadius.sm,
+                iconSize: 18,
+              ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
@@ -576,14 +539,15 @@ class _ErrorBanner extends StatelessWidget {
                     Text(
                       'Verification Notice',
                       style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.clay,
-                        fontWeight: FontWeight.bold,
+                        color: AppColors.claySoftReject,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
                       ),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 3),
                     Text(
                       _tipText(),
-                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink),
+                      style: AppTextStyles.bodySmall.copyWith(color: AppColors.inkWarm),
                     ),
                   ],
                 ),
@@ -591,8 +555,13 @@ class _ErrorBanner extends StatelessWidget {
               TextButton(
                 onPressed: onRetry,
                 style: TextButton.styleFrom(
-                  foregroundColor: AppColors.clay,
+                  foregroundColor: AppColors.claySoftReject,
                   visualDensity: VisualDensity.compact,
+                  textStyle: const TextStyle(
+                    fontFamily: 'Manrope',
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
                 child: const Text('Retry'),
               ),

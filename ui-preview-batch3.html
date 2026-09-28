@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Earn & Learn — Premium UI Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;
+--cream:#F6F3EC;--ivory:#FBF9F3;--surface:#FFFFFF;
+--ink:#2B2620;--inkSoft:#5E574C;--slate:#988F81;--line:#E9E2D6;
+--forest:#2C6A47;--forestBright:#3E8E63;--forestDeep:#274E39;
+--gold:#C39A4E;--goldBright:#D8B570;--goldDeep:#8A6A2C;--goldSoft:#F1E8D4;
+--terra:#BC6A4A;--terraSoft:#F2E4DA;
+--clay:#B0574C;--claySoft:#F1E1DC;--info:#3A5488;
+--espresso:linear-gradient(158deg,#356249 0%,#2C5340 55%,#264A3999 100%),linear-gradient(158deg,#33604780,#274E39);
+--espressoBase:#2C5340;
+--goldGrad:linear-gradient(135deg,#D8B570,#B4914A);
+--terraGrad:linear-gradient(135deg,#C67E5E,#A85D40);
+--shadowSm:0 4px 14px rgba(43,38,32,.055);
+--shadowMd:0 12px 28px rgba(43,38,32,.08);
+--shadowHero:0 16px 38px rgba(38,62,45,.20);
+--serif:'Fraunces','Playfair Display',Georgia,'Times New Roman',serif;
+--sans:'Manrope','Segoe UI',system-ui,sans-serif;
+--mono:'Space Grotesk',ui-monospace,monospace;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);color:var(--ink);background:#EEE8DD;
+background-image:radial-gradient(1200px 600px at 8% -5%,rgba(195,154,78,.08),transparent 55%),radial-gradient(1000px 700px at 100% 0%,rgba(44,106,71,.06),transparent 50%);line-height:1.45}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.serif{font-family:var(--serif)}
+/* intro */
+.intro{max-width:1180px;margin:0 auto;padding:48px 24px 6px}
+.eyebrow{font-size:12px;font-weight:800;letter-spacing:3px;text-transform:uppercase;color:var(--goldDeep)}
+.intro h1{font-family:var(--serif);font-weight:600;font-size:46px;line-height:1.04;letter-spacing:-.5px;margin:10px 0 14px;color:#123D28}
+.intro h1 em{font-style:italic;color:var(--gold)}
+.intro p{max-width:720px;color:var(--inkSoft);font-size:15.5px}
+.swatches{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.sw{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:999px;padding:7px 13px 7px 8px;font-size:12px;font-weight:700;color:var(--inkSoft);backdrop-filter:blur(6px)}
+.sw i{width:18px;height:18px;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(0,0,0,.06)}
+/* band */
+.band{max-width:1180px;margin:40px auto 0;padding:0 24px;display:flex;align-items:center;gap:14px}
+.band .lab{font-family:var(--serif);font-size:22px;font-weight:600}
+.band .rule{height:2px;flex:1;border-radius:2px;background:linear-gradient(90deg,var(--gold),transparent)}
+.band .tag{font-size:11px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--slate)}
+/* grid + phone */
+.grid{max-width:1180px;margin:20px auto 0;padding:0 24px;display:flex;flex-wrap:wrap;gap:40px}
+.phone{width:310px;flex:0 0 auto}
+.cap{font-size:12.5px;font-weight:700;color:var(--inkSoft);margin:0 6px 10px;display:flex;justify-content:space-between;align-items:baseline}
+.cap small{color:var(--slate);font-weight:600;font-size:11px}
+.frame{width:310px;height:648px;background:linear-gradient(160deg,#3A322A,#211B15);border-radius:46px;padding:11px;box-shadow:0 22px 48px rgba(40,32,24,.22),0 5px 12px rgba(40,32,24,.14)}
+.screen{position:relative;width:100%;height:100%;background:var(--cream);border-radius:36px;overflow:hidden;display:flex;flex-direction:column;
+background-image:radial-gradient(600px 300px at 100% -8%,rgba(215,154,32,.10),transparent 60%)}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:120px;height:24px;background:#0E0A07;border-radius:0 0 15px 15px;z-index:50}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:20px 16px 14px}
+.scroll::-webkit-scrollbar{width:0}
+/* topbar inside screen */
+.tb{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.tb .who{display:flex;align-items:center;gap:11px}
+.ava{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:15px;background:var(--espresso);background-color:var(--espressoBase);box-shadow:var(--shadowSm)}
+.ava.g{background:var(--goldGrad)}
+.tb .hi{font-size:11px;color:var(--slate);font-weight:700;letter-spacing:.3px}
+.tb .nm{font-family:var(--serif);font-size:19px;font-weight:600;line-height:1.05;margin-top:1px}
+.tb .ic{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.8);border:1px solid var(--line);display:grid;place-items:center;color:var(--inkSoft);font-size:16px}
+.eye{font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--slate)}
+.h-title{font-family:var(--serif);font-size:24px;font-weight:600;letter-spacing:-.3px;line-height:1.08}
+.h-title.sm{font-size:20px}
+.sec{margin:20px 4px 11px}
+.sec .eye{color:var(--goldDeep)}
+.sec .t{font-family:var(--serif);font-size:17px;font-weight:600;margin-top:3px}
+.sec .row{display:flex;justify-content:space-between;align-items:flex-end}
+.sec .cnt{font-size:11px;font-weight:700;color:var(--slate)}
+/* HERO espresso card */
+.hero{position:relative;border-radius:26px;padding:20px;color:#F3EEE6;overflow:hidden;
+background:var(--espresso);background-color:var(--espressoBase);box-shadow:var(--shadowHero)}
+.hero::after{content:"";position:absolute;top:-40px;right:-30px;width:170px;height:170px;border-radius:50%;
+background:radial-gradient(circle,rgba(216,181,112,.18),transparent 68%)}
+.hero .top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:6px 11px;border-radius:999px}
+.pill.gold{background:linear-gradient(135deg,rgba(216,181,112,.92),rgba(180,145,74,.92));color:#4a3915;box-shadow:0 3px 10px rgba(195,154,78,.28)}
+.pill.glass{background:rgba(255,255,255,.12);color:#F3EEE6;border:1px solid rgba(255,255,255,.18)}
+.hero .big{position:relative;z-index:2;display:flex;align-items:baseline;gap:8px;margin-top:18px}
+.hero .big .n{font-family:var(--mono);font-size:52px;font-weight:700;letter-spacing:-1px;line-height:.9}
+.hero .big .u{font-size:13px;font-weight:700;color:rgba(243,238,230,.7)}
+.hero .sub{position:relative;z-index:2;font-size:12px;color:rgba(243,238,230,.65);margin-top:6px}
+.hero .strip{position:relative;z-index:2;display:flex;gap:10px;margin-top:16px}
+.hero .kv{flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:10px 12px}
+.hero .kv .k{font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:rgba(243,238,230,.55);font-weight:700}
+.hero .kv .v{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:3px}
+.hero .kv .v.g{color:var(--goldBright)}
+/* trust badges triad */
+.trust{display:flex;gap:8px;margin-top:14px;position:relative;z-index:2}
+.trust .tb2{flex:1;text-align:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:11px 6px}
+.trust .tb2 .ci{font-size:16px}
+.trust .tb2 .lb{font-size:9.5px;font-weight:700;color:rgba(243,238,230,.8);margin-top:5px;letter-spacing:.3px}
+/* card */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:var(--shadowSm)}
+.card.ivory{background:var(--ivory)}
+.card+.card{margin-top:10px}
+/* quick actions */
+.qa{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.qa .q{border-radius:18px;padding:14px 12px;background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadowSm)}
+.qa .q .qi{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;font-size:17px;color:#fff;margin-bottom:9px}
+.qa .q .ql{font-size:11.5px;font-weight:800}
+.qa .q .qs{font-size:9.5px;color:var(--slate);margin-top:1px}
+/* list row with left accent */
+.lr{position:relative;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:13px 14px 13px 16px;box-shadow:var(--shadowSm);overflow:hidden}
+.lr+.lr{margin-top:9px}
+.lr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px}
+.lr.g::before{background:var(--forest)}.lr.go::before{background:var(--gold)}.lr.cl::before{background:var(--clay)}.lr.sl::before{background:var(--slate)}
+.lr .lead{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;font-size:16px}
+.lr .bd{min-width:0;flex:1}
+.lr .t{font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lr .s{font-size:11px;color:var(--slate);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.iav{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#fff;font-weight:800;font-size:12.5px;flex:0 0 auto}
+.chev{color:var(--slate);font-size:20px;flex:0 0 auto;font-family:var(--serif)}
+/* badge */
+.bdg{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:800;padding:5px 10px;border-radius:999px;white-space:nowrap;letter-spacing:.2px}
+.bg-g{background:#E9F6EE;color:var(--forest)}
+.bg-go{background:var(--goldSoft);color:var(--goldDeep)}
+.bg-cl{background:var(--claySoft);color:var(--clay)}
+.bg-sl{background:#F0ECE4;color:var(--slate)}
+.bg-tr{background:var(--terraSoft);color:var(--terra)}
+.bg-in{background:#E9EDFA;color:var(--info)}
+/* metric */
+.met{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.met .m{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadowSm)}
+.met .m .k{font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--slate)}
+.met .m .v{font-family:var(--mono);font-size:26px;font-weight:700;margin-top:6px;letter-spacing:-.5px}
+.met .m .v.g{color:var(--forest)}.met .m .v.go{color:var(--goldDeep)}
+.met .m .d{font-size:10px;color:var(--slate);margin-top:2px;font-weight:600}
+/* info line */
+.il{display:flex;justify-content:space-between;align-items:center;padding:11px 0;font-size:12.5px}
+.il .k{color:var(--slate);font-weight:600}
+.il .v{font-weight:800;text-align:right}
+.hr{height:1px;background:var(--line)}
+/* buttons */
+.btn{display:flex;align-items:center;justify-content:center;gap:9px;height:50px;border-radius:16px;font-weight:800;font-size:14px;width:100%;letter-spacing:.2px}
+.btn.solid{background:var(--espresso);background-color:var(--espressoBase);color:#F3EEE6;box-shadow:var(--shadowHero)}
+.btn.gold{background:var(--goldGrad);color:#4a3915;box-shadow:0 6px 16px rgba(195,154,78,.24)}
+.btn.terra{background:var(--terraGrad);color:#fff;box-shadow:0 6px 16px rgba(188,106,74,.22)}
+.btn.ghost{background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.btn.dis{background:#F0ECE4;color:#B3A899;border:1px solid var(--line)}
+/* search + chips */
+.search{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 15px;font-size:12.5px;color:var(--slate);box-shadow:var(--shadowSm);font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 4px}
+.chip{font-size:11px;font-weight:800;padding:7px 14px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--inkSoft)}
+.chip.on{background:var(--terraGrad);color:#fff;border-color:transparent;box-shadow:0 4px 11px rgba(188,106,74,.22)}
+.chip.ong{background:var(--forest);color:#fff;border-color:transparent}
+/* bottom nav with FAB */
+.nav{position:relative;height:70px;background:var(--surface);border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-around;padding-bottom:6px}
+.nav .n{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9.5px;font-weight:800;color:var(--slate);width:56px}
+.nav .n.on{color:var(--forest)}
+.nav .n .ni{font-size:19px}
+.fab{position:absolute;left:50%;top:-22px;transform:translateX(-50%);width:60px;height:60px;border-radius:20px;background:var(--terraGrad);display:grid;place-items:center;color:#fff;font-size:24px;box-shadow:0 8px 20px rgba(188,106,74,.32);border:4px solid var(--cream)}
+/* ticket / ledger card (perforated) */
+.ticket{position:relative;background:var(--ivory);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadowMd);overflow:hidden}
+.ticket .tkhead{padding:16px 18px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#FFFDF9,#F5EEDF)}
+.ticket .perf{position:relative;height:22px}
+.ticket .perf::before,.ticket .perf::after{content:"";position:absolute;top:50%;transform:translateY(-50%);width:22px;height:22px;border-radius:50%;background:var(--cream);border:1px solid var(--line)}
+.ticket .perf::before{left:-11px}.ticket .perf::after{right:-11px}
+.ticket .perf .dash{position:absolute;top:50%;left:14px;right:14px;border-top:2px dashed var(--line)}
+.ticket .tkbody{padding:6px 18px 18px}
+.ledger2{display:flex;gap:12px;padding:0 18px 14px}
+.ledger2 .lc{flex:1;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px}
+.ledger2 .lc .k{font-size:9px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--slate)}
+.ledger2 .lc .v{font-family:var(--mono);font-size:22px;font-weight:700;margin-top:5px}
+.ledger2 .lc .v.g{color:var(--forest)}
+.hashline{display:flex;align-items:center;justify-content:space-between;background:#F3EFE7;border-radius:10px;padding:9px 11px;margin:10px 0;font-family:var(--mono);font-size:10.5px;color:var(--slate)}
+/* ring */
+.ring{width:118px;height:118px;border-radius:50%;display:grid;place-items:center;margin:2px auto 0;
+background:conic-gradient(var(--forestBright) 0 88%,rgba(255,255,255,.14) 88% 100%);position:relative}
+.ring::before{content:"";position:absolute;inset:9px;border-radius:50%;background:var(--espressoBase);
+background-image:linear-gradient(155deg,#356249,#274B39)}
+.ring .rc{position:relative;text-align:center;color:#F3EEE6}
+.ring .rc .n{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1}
+.ring .rc .l{font-size:9px;letter-spacing:1px;text-transform:uppercase;color:rgba(243,238,230,.6);margin-top:3px}
+/* progress */
+.prog{height:9px;border-radius:6px;background:#EBE3D8;overflow:hidden;margin-top:9px}
+.prog i{display:block;height:100%;background:var(--goldGrad)}
+/* note / softbox */
+.note{background:var(--ivory);border:1px dashed var(--line);border-radius:14px;padding:13px;font-size:11.5px;color:var(--inkSoft);display:flex;gap:9px;font-weight:600;line-height:1.4}
+.soft{border-radius:14px;padding:12px 14px;font-size:12px;font-weight:700;display:flex;gap:9px;align-items:center}
+.soft.g{background:#E9F6EE;color:var(--forest)}.soft.go{background:var(--goldSoft);color:var(--goldDeep)}.soft.cl{background:var(--claySoft);color:var(--clay)}.soft.pa{background:var(--ivory);color:var(--inkSoft)}
+/* sheet */
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:28px 28px 0 0;box-shadow:0 -18px 50px rgba(20,15,10,.24);padding:18px 18px 22px;z-index:40}
+.grab{width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 14px}
+.dim{position:absolute;inset:0;background:rgba(20,15,10,.28);z-index:35}
+/* photo */
+.photo{height:150px;border-radius:18px;background:linear-gradient(135deg,#4a3d2f,#2c2419);position:relative;overflow:hidden;display:grid;place-items:center;color:#d9cfc2}
+.photo .pg{position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(216,181,112,.14),transparent 60%)}
+.thumb{width:46px;height:46px;border-radius:12px;background:#EEE7DB;display:grid;place-items:center;color:var(--slate);font-size:9px;text-align:center;flex:0 0 auto;font-weight:700}
+/* calendar */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .hd{font-size:9.5px;color:var(--slate);text-align:center;font-weight:800}
+.cal .d{aspect-ratio:1;border-radius:11px;display:grid;place-items:center;font-size:11.5px;font-weight:700;background:var(--ivory);color:var(--inkSoft);font-family:var(--mono)}
+.cal .d.sel{background:var(--espresso);background-color:var(--espressoBase);color:#F3EEE6}
+.cal .d.today{outline:2px solid var(--gold);outline-offset:-2px}
+.foot{max-width:1180px;margin:34px auto 70px;padding:22px 24px;background:rgba(255,255,255,.6);border:1px solid var(--line);border-radius:20px;font-size:13px;color:var(--inkSoft);backdrop-filter:blur(6px)}
+.foot b{color:#123D28}
+/* icons */
+svg.i{width:1em;height:1em;display:inline-block;vertical-align:-0.15em;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.lead svg.i,.qi svg.i,.iav svg.i,.ava svg.i,.fab svg.i,.ci svg.i{stroke-width:1.6}
+/* lifecycle flow ribbon */
+.flow{max-width:1180px;margin:26px auto 0;padding:0 24px}
+.flowcard{background:rgba(255,255,255,.66);border:1px solid var(--line);border-radius:20px;padding:18px 20px;backdrop-filter:blur(6px);box-shadow:var(--shadowSm)}
+.flowcard .eye{color:var(--goldDeep);margin-bottom:12px}
+.chain{display:flex;flex-wrap:wrap;align-items:center;gap:7px}
+.st{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:800;color:var(--inkSoft)}
+.st .sd{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+.st.done{background:#E9F6EE;border-color:transparent;color:var(--forest)}
+.st.live{background:var(--espresso);background-color:var(--espressoBase);color:#F3EEE6;border-color:transparent;box-shadow:0 6px 14px rgba(7,35,22,.28)}
+.farr{color:var(--slate);font-weight:800;font-size:13px}
+.branch{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px;padding-top:12px;border-top:1px dashed var(--line)}
+.branch .lbl{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--slate);align-self:center;margin-right:2px}
+.stateflag{display:inline-flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--slate);background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin:10px 6px 0}
+.stateflag b{color:var(--inkSoft);font-family:var(--mono);font-weight:700;letter-spacing:0}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="ic-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V20a2 2 0 1 1-4 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H4a2 2 0 1 1 0-4h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 8 3.6l.1.1a1.6 1.6 0 0 0 1.8.3H10a1.6 1.6 0 0 0 1-1.5V2a2 2 0 1 1 4 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V10a1.6 1.6 0 0 0 1.5 1H22a2 2 0 1 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1z"/></symbol>
+<symbol id="ic-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2"/><path d="M5.8 16.2a2.9 2.9 0 0 1 5.4 0M14 9.5h4M14 13h4"/></symbol>
+<symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></symbol>
+<symbol id="ic-camera" viewBox="0 0 24 24"><path d="M4 8.5A1.5 1.5 0 0 1 5.5 7h1.7l1-1.6A1 1 0 0 1 10 5h4a1 1 0 0 1 .85.4l1 1.6h1.65A1.5 1.5 0 0 1 20 8.5v9A1.5 1.5 0 0 1 18.5 19h-13A1.5 1.5 0 0 1 4 17.5z"/><circle cx="12" cy="12.5" r="3.2"/></symbol>
+<symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9.2 12l2 2 3.6-4"/></symbol>
+<symbol id="ic-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+<symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="ic-flag" viewBox="0 0 24 24"><path d="M5 21V4M5 5h11l-1.6 3.2L16 12H5"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/></symbol>
+<symbol id="ic-star" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8-5.3-2.8-5.3 2.8 1-5.8L4.5 9.7l5.9-.9z"/></symbol>
+<symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></symbol>
+<symbol id="ic-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 5.2a3.2 3.2 0 0 1 0 6M17.5 19a5.5 5.5 0 0 0-3-4.9"/></symbol>
+<symbol id="ic-home" viewBox="0 0 24 24"><path d="M4 11l8-6.5L20 11M6 9.6V19h12V9.6"/></symbol>
+<symbol id="ic-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.4"/><rect x="13" y="4" width="7" height="7" rx="1.4"/><rect x="4" y="13" width="7" height="7" rx="1.4"/><rect x="13" y="13" width="7" height="7" rx="1.4"/></symbol>
+<symbol id="ic-book" viewBox="0 0 24 24"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H18v15H6.5A1.5 1.5 0 0 0 5 19.5zM18 18v3H6.5A1.5 1.5 0 0 1 5 19.5"/></symbol>
+<symbol id="ic-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9.5 12.5l2 2 3.5-4"/></symbol>
+<symbol id="ic-building" viewBox="0 0 24 24"><path d="M5 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16M15 9h3a1 1 0 0 1 1 1v11M8 8h4M8 12h4M8 16h4"/></symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="ic-chart" viewBox="0 0 24 24"><path d="M4 4v16h16M8 15v2M12 11v6M16 8v9"/></symbol>
+<symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 4v10M8 11l4 3 4-3M5 19h14"/></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+<symbol id="ic-chev-left" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="ic-chev-right" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="ic-hourglass" viewBox="0 0 24 24"><path d="M7 4h10M7 20h10M8 4c0 5 8 5 8 8s-8 3-8 8M16 4c0 5-8 5-8 8"/></symbol>
+<symbol id="ic-power" viewBox="0 0 24 24"><path d="M12 3.5v7.5M7.5 6.5a7 7 0 1 0 9 0"/></symbol>
+<symbol id="ic-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/></symbol>
+<symbol id="ic-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2.2"/><path d="M4 9h16M8 3v4M16 3v4"/></symbol>
+<symbol id="ic-alert" viewBox="0 0 24 24"><path d="M12 4l9 15H3z"/><path d="M12 10v4M12 17h.01"/></symbol>
+</defs></svg>
+<div class="intro">
+  <div class="eyebrow">Earn &amp; Learn · AVCOE · Premium Direction v2</div>
+  <h1>Warm, editorial, <em>unmistakably AVCOE</em>.</h1>
+  <p>A ground-up aesthetic reset inspired by the reference craft you shared — deep forest-espresso hero cards, an editorial serif voice, warm cream canvas, gold member accents, ledger-ticket receipts and trust triads — kept anchored to the college's emerald + gold identity, with a burnt-terracotta spark reserved for live actions. Real seed data throughout; honest gaps preserved. Static mockup — no Dart changed yet.</p>
+  <div class="swatches">
+    <span class="sw"><i style="background:#0A3020"></i>Forest espresso</span>
+    <span class="sw"><i style="background:#0F6B38"></i>AVCOE emerald</span>
+    <span class="sw"><i style="background:#D79A20"></i>Gold</span>
+    <span class="sw"><i style="background:#C2410C"></i>Terracotta spark</span>
+    <span class="sw"><i style="background:#FBF7F1"></i>Warm cream</span>
+    <span class="sw"><i style="background:#211A14"></i>Ink</span>
+    <span class="sw" style="font-family:var(--serif);font-style:italic">Fraunces · serif display</span>
+  </div>
+</div>
+<div class="flow">
+  <div class="flowcard">
+    <div class="eye">How the system works · session lifecycle</div>
+    <div class="chain">
+      <span class="st done"><span class="sd" style="background:var(--forest)"></span>Scheduled</span>
+      <span class="farr">→</span>
+      <span class="st done"><span class="sd" style="background:var(--forest)"></span>Check-in</span>
+      <span class="farr">→</span>
+      <span class="st live"><span class="sd" style="background:var(--goldBright)"></span>Working</span>
+      <span class="farr">→</span>
+      <span class="st"><span class="sd" style="background:var(--slate)"></span>Check-out</span>
+      <span class="farr">→</span>
+      <span class="st"><span class="sd" style="background:var(--slate)"></span>Submitted</span>
+      <span class="farr">→</span>
+      <span class="st"><span class="sd" style="background:var(--slate)"></span>Review</span>
+      <span class="farr">→</span>
+      <span class="st"><span class="sd" style="background:var(--forestBright)"></span>Approved</span>
+    </div>
+    <div class="branch">
+      <span class="lbl">Supervisor decision branches</span>
+      <span class="st"><span class="sd" style="background:var(--goldDeep)"></span>Flagged</span>
+      <span class="st"><span class="sd" style="background:var(--clay)"></span>Rejected</span>
+      <span class="st"><span class="sd" style="background:var(--info)"></span>Correction requested</span>
+    </div>
+  </div>
+</div>
+<div class="band"><span class="lab serif">Student</span><span class="rule"></span><span class="tag">Signature</span></div>
+<div class="grid">
+
+  <!-- Student Home -->
+  <div class="phone">
+    <div class="cap">Home <small>the signature screen</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb">
+          <div class="who"><div class="ava">DR</div><div><div class="hi">Welcome back</div><div class="nm">Rutuja Dhanwate</div></div></div>
+          <div class="ic"><svg class="i"><use href="#ic-cog"/></svg></div>
+        </div>
+        <div class="hero">
+          <div class="top">
+            <span class="pill glass"><svg class="i"><use href="#ic-clock"/></svg> Duty Tally · September</span>
+            <span class="pill gold"><svg class="i"><use href="#ic-star"/></svg> Gold Member</span>
+          </div>
+          <div class="big"><span class="n">39</span><span class="u">verified<br>hours</span></div>
+          <div class="sub">1 hour to your 40-hour monthly ceiling · 6-day streak</div>
+          <div class="strip">
+            <div class="kv"><div class="k">This month</div><div class="v">13 days</div></div>
+            <div class="kv"><div class="k">Est. stipend</div><div class="v g">₹1,300</div></div>
+            <div class="kv"><div class="k">Status</div><div class="v">On duty</div></div>
+          </div>
+          <div class="trust">
+            <div class="tb2"><div class="ci"><svg class="i"><use href="#ic-pin"/></svg></div><div class="lb">Zone<br>verified</div></div>
+            <div class="tb2"><div class="ci"><svg class="i"><use href="#ic-camera"/></svg></div><div class="lb">Selfie<br>verified</div></div>
+            <div class="tb2"><div class="ci"><svg class="i"><use href="#ic-shield"/></svg></div><div class="lb">Supervisor<br>signed</div></div>
+          </div>
+        </div>
+        <div class="idrow" style="display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:13px 15px;box-shadow:var(--shadowSm);margin-top:14px">
+          <div style="width:40px;height:40px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:18px;background:var(--espresso);background-color:var(--espressoBase)"><svg class="i"><use href="#ic-id"/></svg></div>
+          <div style="flex:1"><div class="eye" style="color:var(--slate)">Earn &amp; Learn ID</div><div class="mono" style="font-size:16px;font-weight:700;margin-top:2px">EL2627-001</div></div>
+          <span class="bdg bg-g"><i style="width:7px;height:7px;border-radius:50%;background:var(--forestBright);display:inline-block"></i>ACTIVE</span>
+        </div>
+        <div class="sec"><div class="eye">Quick actions</div></div>
+        <div class="qa">
+          <div class="q"><div class="qi" style="background:var(--terraGrad)"><svg class="i"><use href="#ic-power"/></svg></div><div class="ql">Check-In</div><div class="qs">Start duty</div></div>
+          <div class="q"><div class="qi" style="background:var(--espresso);background-color:var(--espressoBase)"><svg class="i"><use href="#ic-clipboard"/></svg></div><div class="ql">Assignment</div><div class="qs">Study Hall</div></div>
+          <div class="q"><div class="qi" style="background:var(--goldGrad);color:#4a3915"><svg class="i"><use href="#ic-clock"/></svg></div><div class="ql">Register</div><div class="qs">14 days</div></div>
+        </div>
+        <div class="sec"><div class="eye">This week</div></div>
+        <div class="card" style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-family:var(--serif);font-size:15px;font-weight:600">Next shift</div><div style="font-size:11.5px;color:var(--slate);font-weight:600;margin-top:2px">Study Hall · Time slot: Not specified</div></div>
+          <span class="bdg bg-go">Today</span>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="n on"><div class="ni"><svg class="i"><use href="#ic-home"/></svg></div>Home</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-clock"/></svg></div>Register</div>
+        <div class="fab"><svg class="i"><use href="#ic-power"/></svg></div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-clipboard"/></svg></div>Duty</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-user"/></svg></div>Profile</div>
+      </div>
+    </div></div>
+  </div>
+  <!-- Student Working Session -->
+  <div class="phone">
+    <div class="cap">On duty <small>state: working · live timer</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb">
+          <div class="who"><div class="ic" style="width:38px;height:38px;font-size:20px"><svg class="i"><use href="#ic-chev-left"/></svg></div><div><div class="hi">Session</div><div class="nm">On Duty</div></div></div>
+          <span class="bdg bg-tr"><i style="width:7px;height:7px;border-radius:50%;background:var(--terra);display:inline-block"></i>LIVE</span>
+        </div>
+        <div class="hero">
+          <span class="pill glass" style="margin-bottom:4px"><svg class="i"><use href="#ic-clipboard"/></svg> Study Hall · Attendance &amp; Discipline</span>
+          <div class="ring"><div class="rc"><div class="n">01:47</div><div class="l">Elapsed</div></div></div>
+          <div class="sub" style="text-align:center;margin-top:12px">Shift window: Not specified · counting live</div>
+          <div class="strip">
+            <div class="kv"><div class="k">Check-in</div><div class="v">09:13</div></div>
+            <div class="kv"><div class="k">Zone</div><div class="v g">Inside</div></div>
+            <div class="kv"><div class="k">Today</div><div class="v">1.8 h</div></div>
+          </div>
+        </div>
+        <div class="sec"><div class="eye">Verification</div></div>
+        <div class="soft g" style="margin-bottom:9px"><svg class="i" style="font-size:15px"><use href="#ic-check"/></svg>Selfie captured &amp; matched at check-in</div>
+        <div class="soft go"><svg class="i" style="font-size:15px"><use href="#ic-clock"/></svg>Supervisor sign-off pending at check-out</div>
+        <div style="margin-top:16px"><div class="btn terra"><svg class="i" style="font-size:18px"><use href="#ic-power"/></svg> &nbsp;Check Out &amp; Submit</div></div>
+        <div class="note" style="margin-top:11px"><svg class="i" style="font-size:15px;color:var(--gold)"><use href="#ic-info"/></svg><span>Check-out captures a fresh selfie and location, then submits the session for supervisor review.</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Payroll ledger ticket -->
+  <div class="phone">
+    <div class="cap">Payroll <small>monthly ledger receipt</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb"><div class="who"><div class="ic" style="width:38px;height:38px;font-size:20px"><svg class="i"><use href="#ic-chev-left"/></svg></div><div><div class="hi">Earnings</div><div class="nm">September Ledger</div></div></div><div class="ic"><svg class="i"><use href="#ic-download"/></svg></div></div>
+        <div class="ticket">
+          <div class="tkhead">
+            <div><div class="eye" style="color:var(--goldDeep)">Statement of hours</div><div style="font-family:var(--serif);font-size:19px;font-weight:600;margin-top:2px">Rutuja Dhanwate</div></div>
+            <span class="bdg bg-go">Provisional</span>
+          </div>
+          <div class="perf"><div class="dash"></div></div>
+          <div class="ledger2">
+            <div class="lc"><div class="k">Verified hrs</div><div class="v">39.0</div></div>
+            <div class="lc"><div class="k">Days worked</div><div class="v">13</div></div>
+            <div class="lc"><div class="k">Amount</div><div class="v g">₹1,300</div></div>
+          </div>
+          <div class="tkbody">
+            <div class="il"><span class="k">Rate applied</span><span class="v">₹100 / day</span></div>
+            <div class="hr"></div>
+            <div class="il"><span class="k">Approved sessions</span><span class="v">12</span></div>
+            <div class="hr"></div>
+            <div class="il"><span class="k">Pending review</span><span class="v" style="color:var(--goldDeep)">1</span></div>
+            <div class="hr"></div>
+            <div class="il"><span class="k">Disbursement</span><span class="v">Not scheduled</span></div>
+            <div class="hashline"><span>REF · EL2627-001 · 2627</span><span style="display:inline-flex;align-items:center;gap:5px">SDO sign-off <svg class="i" style="font-size:13px"><use href="#ic-hourglass"/></svg></span></div>
+          </div>
+        </div>
+        <div class="note" style="margin-top:14px"><svg class="i" style="font-size:15px;color:var(--gold)"><use href="#ic-info"/></svg><span>Provisional until the Student Development Officer approves the month. Disbursement date is set by the SDO — currently not scheduled.</span></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="band"><span class="lab serif">Supervisor</span><span class="rule"></span><span class="tag">Verify &amp; sign off</span></div>
+<div class="grid">
+
+  <!-- Supervisor review queue -->
+  <div class="phone">
+    <div class="cap">Review queue <small>sessions awaiting sign-off</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb">
+          <div class="who"><div class="ava g">SP</div><div><div class="hi">Supervisor</div><div class="nm">Savita Punekar</div></div></div>
+          <div class="ic"><svg class="i"><use href="#ic-cog"/></svg></div>
+        </div>
+        <div class="hero">
+          <div class="top"><span class="pill glass"><svg class="i"><use href="#ic-shield"/></svg> Sign-off desk</span><span class="pill gold">SV-07</span></div>
+          <div class="big"><span class="n">4</span><span class="u">awaiting<br>review</span></div>
+          <div class="sub">Study Hall · 8 students assigned</div>
+          <div class="strip">
+            <div class="kv"><div class="k">Approved today</div><div class="v g">6</div></div>
+            <div class="kv"><div class="k">Flagged</div><div class="v">1</div></div>
+            <div class="kv"><div class="k">On duty now</div><div class="v">2</div></div>
+          </div>
+        </div>
+        <div class="sec"><div class="eye">Pending sessions</div></div>
+        <div class="lr go">
+          <div class="iav" style="background:var(--goldGrad)">RD</div>
+          <div class="bd"><div class="t">Rutuja Dhanwate</div><div class="s">1.8 h · check-out 11:02 · EL2627-001</div></div>
+          <span class="bdg bg-go">Pending</span>
+        </div>
+        <div class="lr go">
+          <div class="iav" style="background:var(--goldGrad)">GK</div>
+          <div class="bd"><div class="t">Gayatri Karale</div><div class="s">3.0 h · check-out 12:15 · EL2627-014</div></div>
+          <span class="bdg bg-go">Pending</span>
+        </div>
+        <div class="lr cl">
+          <div class="iav" style="background:var(--claySoft);color:var(--clay);font-size:18px"><svg class="i"><use href="#ic-alert"/></svg></div>
+          <div class="bd"><div class="t">Zone mismatch flagged</div><div class="s">Selfie ok · location outside geofence</div></div>
+          <span class="bdg bg-cl">Flag</span>
+        </div>
+      </div>
+      <div class="nav">
+        <div class="n on"><div class="ni"><svg class="i"><use href="#ic-shield"/></svg></div>Review</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-users"/></svg></div>Students</div>
+        <div class="fab" style="background:var(--goldGrad);color:#4a3915;box-shadow:0 8px 20px rgba(195,154,78,.3)"><svg class="i"><use href="#ic-check"/></svg></div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-clock"/></svg></div>Attendance</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-user"/></svg></div>Profile</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Supervisor sign-off sheet -->
+  <div class="phone">
+    <div class="cap">Sign-off <small>state: review → approve · flag · reject</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll" style="filter:brightness(.97)">
+        <div class="tb"><div class="who"><div class="ic" style="width:38px;height:38px;font-size:20px"><svg class="i"><use href="#ic-chev-left"/></svg></div><div><div class="hi">Session</div><div class="nm">Review</div></div></div></div>
+        <div class="photo"><div class="pg"></div><div style="position:relative;text-align:center"><svg class="i" style="font-size:30px"><use href="#ic-camera"/></svg><div style="font-size:10px;letter-spacing:1px;margin-top:6px">CHECK-OUT SELFIE</div></div></div>
+        <div class="card" style="margin-top:12px"><div class="il"><span class="k">Student</span><span class="v">Rutuja Dhanwate</span></div><div class="hr"></div><div class="il"><span class="k">Location</span><span class="v">Study Hall</span></div><div class="hr"></div><div class="il"><span class="k">Zone check</span><span class="v" style="color:var(--forest)">Inside · verified</span></div></div>
+      </div>
+      <div class="dim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-family:var(--serif);font-size:20px;font-weight:600">Confirm sign-off</div><span class="bdg bg-go">1.8 h</span></div>
+        <div class="soft pa" style="margin:12px 0"><svg class="i" style="font-size:15px"><use href="#ic-clock"/></svg>09:13 → 11:02 · Study Hall · selfie matched</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+          <div class="btn ghost" style="height:46px;color:var(--clay)"><svg class="i" style="font-size:17px"><use href="#ic-x"/></svg> Reject</div>
+          <div class="btn ghost" style="height:46px;color:var(--goldDeep)"><svg class="i" style="font-size:17px"><use href="#ic-flag"/></svg> Flag</div>
+        </div>
+        <div class="btn" style="background:var(--forest);color:#fff;box-shadow:0 8px 18px rgba(44,106,71,.24)"><svg class="i" style="font-size:18px"><use href="#ic-check"/></svg> &nbsp;Approve &amp; Sign</div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="band"><span class="lab serif">Admin · SDO</span><span class="rule"></span><span class="tag">Oversight &amp; payroll</span></div>
+<div class="grid">
+
+  <!-- Admin overview -->
+  <div class="phone">
+    <div class="cap">Overview <small>the whole scheme at a glance</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb"><div class="who"><div class="ava" style="background:var(--espresso);background-color:var(--espressoBase)">SD</div><div><div class="hi">Student Dev. Office</div><div class="nm">Scheme Overview</div></div></div><div class="ic"><svg class="i"><use href="#ic-cog"/></svg></div></div>
+        <div class="hero">
+          <div class="top"><span class="pill glass"><svg class="i"><use href="#ic-grid"/></svg> K.B.P. Earn &amp; Learn</span><span class="pill gold">AY 2026–27</span></div>
+          <div class="big"><span class="n">68</span><span class="u">enrolled<br>students</span></div>
+          <div class="sub">15 locations · 10 supervisors · 68 assignments</div>
+          <div class="strip">
+            <div class="kv"><div class="k">On duty now</div><div class="v g">9</div></div>
+            <div class="kv"><div class="k">Pending review</div><div class="v">12</div></div>
+            <div class="kv"><div class="k">Month payout</div><div class="v g">₹—</div></div>
+          </div>
+        </div>
+        <div class="sec"><div class="eye">Health checks</div></div>
+        <div class="soft cl" style="margin-bottom:9px"><svg class="i" style="font-size:15px"><use href="#ic-alert"/></svg>77 data validation issues · roster incomplete</div>
+        <div class="met">
+          <div class="m"><div class="k">No contact</div><div class="v go">60</div><div class="d">students · phone missing</div></div>
+          <div class="m"><div class="k">No email</div><div class="v go">10</div><div class="d">supervisors</div></div>
+          <div class="m"><div class="k">No time slot</div><div class="v go">3</div><div class="d">library allotments</div></div>
+          <div class="m"><div class="k">Unassigned</div><div class="v go">4</div><div class="d">allotments · no supervisor</div></div>
+        </div>
+        <div class="sec"><div class="eye">Manage</div></div>
+        <div class="lr sl"><div class="lead" style="background:#F0ECE4;color:var(--slate)"><svg class="i"><use href="#ic-users"/></svg></div><div class="bd"><div class="t">Students</div><div class="s">68 records · 60 need contact</div></div><span class="chev"><svg class="i"><use href="#ic-chev-right"/></svg></span></div>
+        <div class="lr sl"><div class="lead" style="background:#F0ECE4;color:var(--slate)"><svg class="i"><use href="#ic-building"/></svg></div><div class="bd"><div class="t">Locations</div><div class="s">15 · coordinates: Configuration required</div></div><span class="chev"><svg class="i"><use href="#ic-chev-right"/></svg></span></div>
+      </div>
+      <div class="nav">
+        <div class="n on"><div class="ni"><svg class="i"><use href="#ic-grid"/></svg></div>Overview</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-users"/></svg></div>People</div>
+        <div class="fab" style="background:var(--espresso);background-color:var(--espressoBase);box-shadow:0 8px 20px rgba(38,62,45,.3)"><svg class="i"><use href="#ic-plus"/></svg></div>
+        <div class="n"><div class="ni" style="font-family:var(--mono);font-size:19px;font-weight:700">₹</div>Payroll</div>
+        <div class="n"><div class="ni"><svg class="i"><use href="#ic-chart"/></svg></div>Reports</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Locations discover -->
+  <div class="phone">
+    <div class="cap">Locations <small>discover · duty sites</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb"><div class="who"><div class="ic" style="width:38px;height:38px;font-size:20px"><svg class="i"><use href="#ic-chev-left"/></svg></div><div><div class="hi">15 duty sites</div><div class="nm">Locations</div></div></div><div class="ic"><svg class="i"><use href="#ic-search"/></svg></div></div>
+        <div class="search"><svg class="i" style="font-size:16px"><use href="#ic-search"/></svg> &nbsp;Search location or supervisor…</div>
+        <div class="chips"><span class="chip ong">All 15</span><span class="chip">Hostels</span><span class="chip">Library</span><span class="chip">Office</span></div>
+        <div class="lr g"><div class="lead" style="background:#E7F1EA;color:var(--forest)"><svg class="i"><use href="#ic-book"/></svg></div><div class="bd"><div class="t">Study Hall</div><div class="s">Miss. Savita Punekar · 8 students</div></div><span class="bdg bg-go">Slot: —</span></div>
+        <div class="lr g"><div class="lead" style="background:#E7F1EA;color:var(--forest)"><svg class="i"><use href="#ic-home"/></svg></div><div class="bd"><div class="t">Kalsubai Hostel (Old)</div><div class="s">Prof. V.S. Ubale · 5 students</div></div><span class="chev"><svg class="i"><use href="#ic-chev-right"/></svg></span></div>
+        <div class="lr sl"><div class="lead" style="background:#F0ECE4;color:var(--slate)"><svg class="i"><use href="#ic-book"/></svg></div><div class="bd"><div class="t">Central Library</div><div class="s">Supervisor: Not assigned</div></div><span class="bdg bg-cl">Unassigned</span></div>
+        <div class="lr g"><div class="lead" style="background:#E7F1EA;color:var(--forest)"><svg class="i"><use href="#ic-building"/></svg></div><div class="bd"><div class="t">Administrative Office</div><div class="s">Prof. R.D. Nikam · 4 students</div></div><span class="chev"><svg class="i"><use href="#ic-chev-right"/></svg></span></div>
+        <div class="note" style="margin-top:12px"><svg class="i" style="font-size:15px;color:var(--forest)"><use href="#ic-pin"/></svg><span>Geofence coordinates are Configuration required for all sites — zone verification stays dormant until the SDO sets them.</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- Reports / calendar -->
+  <div class="phone">
+    <div class="cap">Reports <small>attendance calendar</small></div>
+    <div class="frame"><div class="notch"></div><div class="screen">
+      <div class="scroll">
+        <div class="tb"><div class="who"><div class="ic" style="width:38px;height:38px;font-size:20px"><svg class="i"><use href="#ic-chev-left"/></svg></div><div><div class="hi">September 2026</div><div class="nm">Attendance</div></div></div><div class="ic"><svg class="i"><use href="#ic-download"/></svg></div></div>
+        <div class="card ivory">
+          <div class="cal" style="margin-bottom:4px">
+            <div class="hd">M</div><div class="hd">T</div><div class="hd">W</div><div class="hd">T</div><div class="hd">F</div><div class="hd">S</div><div class="hd">S</div>
+            <div class="d">1</div><div class="d">2</div><div class="d">3</div><div class="d">4</div><div class="d">5</div><div class="d" style="opacity:.4">6</div><div class="d" style="opacity:.4">7</div>
+            <div class="d">8</div><div class="d">9</div><div class="d">10</div><div class="d">11</div><div class="d">12</div><div class="d" style="opacity:.4">13</div><div class="d" style="opacity:.4">14</div>
+            <div class="d">15</div><div class="d">16</div><div class="d">17</div><div class="d">18</div><div class="d">19</div><div class="d" style="opacity:.4">20</div><div class="d" style="opacity:.4">21</div>
+            <div class="d">22</div><div class="d">23</div><div class="d">24</div><div class="d">25</div><div class="d">26</div><div class="d sel today">27</div><div class="d" style="opacity:.4">28</div>
+          </div>
+        </div>
+        <div class="sec"><div class="eye">27 September</div><div class="t serif" style="font-size:16px">Day summary</div></div>
+        <div class="met">
+          <div class="m"><div class="k">Present</div><div class="v g">31</div><div class="d">verified check-ins</div></div>
+          <div class="m"><div class="k">Hours logged</div><div class="v">92.5</div><div class="d">across 15 sites</div></div>
+          <div class="m"><div class="k">Approved</div><div class="v g">27</div><div class="d">signed off</div></div>
+          <div class="m"><div class="k">Pending</div><div class="v go">4</div><div class="d">awaiting review</div></div>
+        </div>
+        <div style="margin-top:14px"><div class="btn ghost"><svg class="i" style="font-size:17px"><use href="#ic-download"/></svg> &nbsp;Export month · CSV</div></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<div class="foot">
+  <b>Direction v2 — a ground-up aesthetic reset.</b> Nine screens across all three roles in one warm, editorial system: forest-espresso hero cards, <span style="font-family:var(--serif);font-style:italic">Fraunces</span> serif headlines, gold member accents, a burnt-terracotta spark reserved for live actions, ledger-ticket receipts, trust triads and a center-FAB nav. Every value is real seed data — Rutuja Dhanwate / EL2627-001, Study Hall, Savita Punekar, 15 locations, ₹100/day — and honest gaps are shown as-is (77 validation issues, "Not specified", "Not assigned", "Configuration required"). Nothing here changes Dart yet — this is the look to approve before we build it.
+</div>
+</body>
+</html>

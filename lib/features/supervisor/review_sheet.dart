@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/design_system/app_colors.dart';
-import '../../../core/design_system/app_radius.dart';
-import '../../../core/design_system/app_spacing.dart';
-import '../../../core/design_system/app_text_styles.dart';
-import '../../../core/design_system/status_style.dart';
-import '../../../core/models/models.dart';
-import '../../../data/firebase/attendance_gateway.dart';
-import '../../../shared/components/status_badge.dart';
+import '../../core/design_system/app_colors.dart';
+import '../../core/design_system/app_radius.dart';
+import '../../core/design_system/app_spacing.dart';
+import '../../core/design_system/app_text_styles.dart';
+import '../../core/models/models.dart';
+import '../../data/firebase/attendance_gateway.dart';
+import '../../shared/components/components.dart';
 
 /// Supervisor review for one attendance item.
 ///
@@ -84,41 +83,63 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
             children: [
               Center(
                 child: Container(
-                  width: 36,
+                  width: 40,
                   height: 4,
                   margin: const EdgeInsets.only(bottom: AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.divider,
+                    color: AppColors.warmLine,
                     borderRadius: BorderRadius.circular(AppRadius.full),
                   ),
                 ),
               ),
+              const Eyebrow('Confirm sign-off'),
+              const SizedBox(height: 4),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Text(item.studentName, style: AppTextStyles.titleLarge),
+                    child: Text(
+                      item.studentName,
+                      style: AppTextStyles.titleLarge
+                          .copyWith(fontWeight: FontWeight.w800),
+                    ),
                   ),
-                  StatusBadge.status(
-                    style: item.status.style,
+                  const SizedBox(width: 10),
+                  PremiumBadge(
                     label: item.status.label,
+                    tone: _toneFor(item.status),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: 2),
               Text(
                 '${item.type.label} · ${item.location}',
-                style: AppTextStyles.bodySmall,
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
               ),
-              const SizedBox(height: AppSpacing.sm),
-              Text(item.summary, style: AppTextStyles.bodyMedium),
               const SizedBox(height: AppSpacing.lg),
               _EvidenceCapture(itemId: item.id, evidenceUrl: _evidenceUrl),
               const SizedBox(height: AppSpacing.md),
-              Text(
-                'COMMON REASONS & NOTES',
-                style: AppTextStyles.labelSmall.copyWith(color: AppColors.slate),
+              SoftBox(
+                label: item.summary,
+                tone: BadgeTone.info,
+                icon: Icons.schedule,
               ),
-              const SizedBox(height: AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md),
+              WarmCard(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+                child: Column(
+                  children: [
+                    InfoLine(label: 'Student', value: item.studentName),
+                    const HairDivider(),
+                    InfoLine(label: 'Location', value: item.location),
+                    const HairDivider(),
+                    InfoLine(label: 'Type', value: item.type.label),
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              const Eyebrow('Common reasons & notes'),
+              const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.xs,
                 runSpacing: 4,
@@ -131,9 +152,14 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
                     'Verified on duty',
                   ])
                     ActionChip(
-                      label: Text(reason, style: AppTextStyles.labelSmall.copyWith(fontSize: 11)),
+                      label: Text(reason,
+                          style:
+                              AppTextStyles.labelSmall.copyWith(fontSize: 11)),
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: _note.text == reason ? AppColors.paper : AppColors.surface,
+                      backgroundColor: _note.text == reason
+                          ? AppColors.goldTint
+                          : AppColors.warmSurface,
+                      side: const BorderSide(color: AppColors.warmLine),
                       onPressed: () => setState(() => _note.text = reason),
                     ),
                 ],
@@ -144,8 +170,15 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
                 maxLines: 2,
                 decoration: InputDecoration(
                   hintText: 'Note for the student (optional)',
+                  filled: true,
+                  fillColor: AppColors.warmIvory,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: const BorderSide(color: AppColors.warmLine),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: const BorderSide(color: AppColors.warmLine),
                   ),
                   contentPadding: const EdgeInsets.all(AppSpacing.md),
                 ),
@@ -154,58 +187,67 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
               Row(
                 children: [
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed:
-                          _submitting ? null : () => _submit(ApprovalStatus.rejected),
+                    child: OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _submit(ApprovalStatus.rejected),
+                      icon: const Icon(Icons.close, size: 17),
+                      label: const Text('Reject'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.clay,
-                        side: const BorderSide(color: AppColors.clay),
+                        foregroundColor: AppColors.claySoftReject,
+                        side: const BorderSide(color: AppColors.claySoftReject),
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
-                      child: const Text('Reject'),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: OutlinedButton(
-                      onPressed:
-                          _submitting ? null : () => _submit(ApprovalStatus.flagged),
+                    child: OutlinedButton.icon(
+                      onPressed: _submitting
+                          ? null
+                          : () => _submit(ApprovalStatus.flagged),
+                      icon: const Icon(Icons.flag_outlined, size: 17),
+                      label: const Text('Flag'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.marigold,
-                        side: const BorderSide(color: AppColors.marigold),
+                        foregroundColor: AppColors.goldSoftDeep,
+                        side: const BorderSide(color: AppColors.goldSoftDeep),
                         minimumSize: const Size.fromHeight(48),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
-                      child: const Text('Flag'),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed:
-                          _submitting ? null : () => _submit(ApprovalStatus.approved),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.avcoeGreen,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                      ),
-                      child: _submitting
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Text('Approve'),
                     ),
                   ),
                 ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              FilledButton.icon(
+                onPressed:
+                    _submitting ? null : () => _submit(ApprovalStatus.approved),
+                icon: _submitting
+                    ? const SizedBox.shrink()
+                    : const Icon(Icons.check, size: 18),
+                label: _submitting
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.onHeroWarm,
+                        ),
+                      )
+                    : const Text('Approve & Sign'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.forestSoft,
+                  foregroundColor: AppColors.onHeroWarm,
+                  minimumSize: const Size.fromHeight(50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                ),
               ),
             ],
           ),
@@ -214,6 +256,13 @@ class _ReviewSheetState extends ConsumerState<ReviewSheet> {
     );
   }
 }
+
+BadgeTone _toneFor(ApprovalStatus status) => switch (status) {
+      ApprovalStatus.approved => BadgeTone.forest,
+      ApprovalStatus.flagged => BadgeTone.terra,
+      ApprovalStatus.rejected => BadgeTone.clay,
+      ApprovalStatus.pending => BadgeTone.gold,
+    };
 
 class _EvidenceCapture extends StatelessWidget {
   const _EvidenceCapture({required this.itemId, required this.evidenceUrl});
@@ -227,13 +276,23 @@ class _EvidenceCapture extends StatelessWidget {
       return Container(
         height: 120,
         decoration: BoxDecoration(
-          color: AppColors.paper,
+          color: AppColors.warmIvory,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: AppColors.divider),
+          border: Border.all(color: AppColors.warmLine),
         ),
-        child: const Center(
-          child: Text('Live evidence via supervisor route',
-              style: AppTextStyles.bodySmall),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.photo_camera_outlined,
+                  size: 26, color: AppColors.slateWarm),
+              const SizedBox(height: 6),
+              Text(
+                'Live evidence via supervisor route',
+                style: AppTextStyles.bodySmall.copyWith(color: AppColors.slateWarm),
+              ),
+            ],
+          ),
         ),
       );
     }
@@ -247,16 +306,18 @@ class _EvidenceCapture extends StatelessWidget {
           );
         }
         if (!snapshot.hasData) {
-          return const _Box(child: SizedBox(
-            height: 32,
-            child: Center(
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
+          return const _Box(
+            child: SizedBox(
+              height: 32,
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
               ),
             ),
-          ));
+          );
         }
         return Container(
           height: 180,
@@ -282,9 +343,9 @@ class _Box extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.paper,
+        color: AppColors.warmIvory,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(color: AppColors.warmLine),
       ),
       child: child,
     );

@@ -6,7 +6,6 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
@@ -61,6 +60,15 @@ final _rosterProvider = FutureProvider.autoDispose<List<_RosterEntry>>(
   },
 );
 
+/// Warm-premium (accent, badge) pair for an assignment lifecycle state.
+(Color, BadgeTone) _assignmentTone(AssignmentStatus status) => switch (status) {
+      AssignmentStatus.active => (AppColors.forestSoft, BadgeTone.forest),
+      AssignmentStatus.completed => (AppColors.forestSoft, BadgeTone.forest),
+      AssignmentStatus.future => (AppColors.goldSoftDeep, BadgeTone.gold),
+      AssignmentStatus.temporary => (AppColors.terraSpark, BadgeTone.terra),
+      AssignmentStatus.inactive => (AppColors.slateWarm, BadgeTone.slate),
+    };
+
 /// Roster of the students assigned to the signed-in supervisor.
 class SupervisorStudentsScreen extends ConsumerStatefulWidget {
   const SupervisorStudentsScreen({super.key});
@@ -101,20 +109,26 @@ class _SupervisorStudentsScreenState
     final rosterAsync = ref.watch(_rosterProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Top Row: Title + Bhaurao Portrait
+            // Top row: title + Bhaurao portrait (preserved).
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Students', style: AppTextStyles.headlineSmall.copyWith(fontWeight: FontWeight.w800)),
-                    Text('Assigned duty roster', style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate)),
+                    Text('Students',
+                        style: AppTextStyles.headlineSmall
+                            .copyWith(fontWeight: FontWeight.w800)),
+                    const SizedBox(height: 1),
+                    Text('Assigned duty roster',
+                        style: AppTextStyles.bodySmall
+                            .copyWith(color: AppColors.slateWarm)),
                   ],
                 ),
                 const BhauraoPortrait(size: 40),
@@ -122,7 +136,7 @@ class _SupervisorStudentsScreenState
             ),
             const SizedBox(height: AppSpacing.lg),
 
-            // Search Bar
+            // Search bar (preserved).
             SearchFilterBar(
               hintText: 'Search by name or ID...',
               initialQuery: _query,
@@ -130,7 +144,7 @@ class _SupervisorStudentsScreenState
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Filter Chips Row
+            // Filter chips (preserved).
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -162,7 +176,6 @@ class _SupervisorStudentsScreenState
                 ],
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
 
             rosterAsync.when(
               loading: () => const _CenteredNote(
@@ -178,15 +191,15 @@ class _SupervisorStudentsScreenState
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SectionHeader(
-                      eyebrow: 'ASSIGNED ROSTER',
+                    SectionEyebrow(
+                      eyebrow: 'Assigned roster',
                       title: 'Assigned students',
                       trailing: Text(
                         '${filtered.length} of ${roster.length}',
-                        style: AppTextStyles.labelMedium,
+                        style: AppTextStyles.labelMedium
+                            .copyWith(color: AppColors.slateWarm),
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.md),
                     if (filtered.isEmpty)
                       const EmptyState(
                         icon: Icons.search_off,
@@ -196,8 +209,7 @@ class _SupervisorStudentsScreenState
                     else
                       for (var i = 0; i < filtered.length; i++) ...[
                         _RosterRow(entry: filtered[i]),
-                        if (i != filtered.length - 1)
-                          const SizedBox(height: AppSpacing.sm),
+                        if (i != filtered.length - 1) const SizedBox(height: 10),
                       ],
                   ],
                 );
@@ -218,41 +230,24 @@ class _RosterRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final assignment = entry.assignment;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.divider),
+    final (accent, tone) = _assignmentTone(assignment.status);
+    return AccentRow(
+      accent: accent,
+      lead: InitialsBubble(
+        initials: entry.student.initials,
+        gradient: AppColors.heroForest,
       ),
-      child: InkWell(
-        onTap: () => context.go('/supervisor/students/${entry.student.id}'),
-        child: Row(
-          children: [
-            InitialsAvatar(name: entry.student.name, size: 42),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    entry.student.name,
-                    style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '${entry.student.rollNumber} · ${entry.student.departmentOrNA}',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
-                  ),
-                ],
-              ),
-            ),
-            StatusBadge.status(style: assignment.status.style),
-            const SizedBox(width: AppSpacing.xs),
-            const Icon(Icons.chevron_right, size: 20, color: AppColors.slate),
-          ],
-        ),
+      title: entry.student.name,
+      subtitle: '${entry.student.rollNumber} · ${entry.student.departmentOrNA}',
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PremiumBadge(label: assignment.status.label, tone: tone),
+          const SizedBox(width: 8),
+          const RowChevron(),
+        ],
       ),
+      onTap: () => context.go('/supervisor/students/${entry.student.id}'),
     );
   }
 }

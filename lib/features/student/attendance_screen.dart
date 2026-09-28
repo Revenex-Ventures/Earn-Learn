@@ -6,7 +6,6 @@ import '../../core/design_system/app_colors.dart';
 import '../../core/design_system/app_radius.dart';
 import '../../core/design_system/app_spacing.dart';
 import '../../core/design_system/app_text_styles.dart';
-import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../domain/domain.dart';
@@ -154,6 +153,8 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
     final maxMonthlyHours = assignment.maxMonthlyHours;
     final verified = data.records.fold<double>(0, (s, r) => s + r.verifiedHours);
     final remaining = (maxMonthlyHours - verified).clamp(0.0, maxMonthlyHours.toDouble());
+    final presentCount =
+        data.records.where((r) => r.status == AttendanceStatus.present).length;
 
     final daysInMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0).day;
     final firstWeekday = DateTime(_selectedMonth.year, _selectedMonth.month, 1).weekday;
@@ -166,88 +167,102 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
     final selectedEvent = _eventOn(data.events, _selectedDate);
     final dayState = _dayState(data, selectedRecord, selectedEvent);
     final todayShiftState = isViewingToday ? dayState : null;
+    final isWorkingNow = isViewingToday && dayState == ShiftState.working;
+
+    final ceilingCaption = maxMonthlyHours > 0
+        ? '${_h(remaining)} h to your $maxMonthlyHours-hour monthly ceiling'
+        : 'Monthly ceiling: Not specified';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg, AppSpacing.lg, AppSpacing.lg, AppSpacing.xxl),
       child: ResponsivePage(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ContextHeader(
-              greeting: 'Attendance Register',
-              dateLine: monthName,
-              trailing: InitialsAvatar(name: data.studentName),
-            ),
-            const SizedBox(height: AppSpacing.lg),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
+                InitialsBubble(
+                  initials: _initials(data.studentName),
+                  gradient: AppColors.heroForest,
+                ),
+                const SizedBox(width: 11),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('MONTHLY REGISTER', style: AppTextStyles.labelSmall),
-                      const SizedBox(height: 2),
                       Text(
-                        '${data.records.length} day(s) logged',
-                        style: AppTextStyles.titleLarge,
+                        'Attendance Register',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: AppColors.slate,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      Text(
+                        monthName,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          fontWeight: FontWeight.w800,
+                          height: 1.05,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.chevron_left, size: 22),
-                      onPressed: _previousMonth,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.chevron_right, size: 22),
-                      onPressed: _nextMonth,
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ],
-                ),
+                _RoundNavIcon(icon: Icons.chevron_left, onTap: _previousMonth),
+                const SizedBox(width: 8),
+                _RoundNavIcon(icon: Icons.chevron_right, onTap: _nextMonth),
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            MetricGroup(
+            EspressoHero(
+              value: _h(verified),
+              unit: 'verified\nhours',
+              caption: ceilingCaption,
+              leftPill: const HeroPill(
+                  label: 'Monthly register', icon: Icons.calendar_month),
+              rightPill: isWorkingNow
+                  ? const PremiumBadge(
+                      label: 'LIVE', tone: BadgeTone.terra, dot: true)
+                  : null,
+              stats: [
+                HeroStat(label: 'Days', value: '${data.records.length}'),
+                HeroStat(label: 'Present', value: '$presentCount'),
+                HeroStat(
+                    label: 'Remaining', value: '${_h(remaining)} h', gold: true),
+              ],
+              child: isWorkingNow ? _liveDutyRing(selectedRecord) : null,
+            ),
+            const SectionEyebrow(eyebrow: 'This month'),
+            MetricTileGrid(
               items: [
-                MetricItem(
+                MetricTileData(
                   label: 'Days worked',
                   value: '${data.records.length}',
-                  icon: Icons.today_outlined,
+                  desc: 'Sessions logged',
                 ),
-                MetricItem(
+                MetricTileData(
                   label: 'Present',
-                  value: '${data.records.where((r) => r.status == AttendanceStatus.present).length}',
-                  icon: Icons.check_circle_outline,
-                  tone: StatusTone.positive,
+                  value: '$presentCount',
+                  desc: 'Verified present',
+                  tone: BadgeTone.forest,
                 ),
-                MetricItem(
+                MetricTileData(
                   label: 'Verified hours',
-                  value: '${verified.toStringAsFixed(1)}h',
-                  icon: Icons.hourglass_bottom,
-                  tone: StatusTone.positive,
+                  value: '${_h(verified)}h',
+                  desc: 'Counted to ceiling',
+                  tone: BadgeTone.gold,
                 ),
-                MetricItem(
+                MetricTileData(
                   label: 'Remaining',
-                  value: '${remaining.toStringAsFixed(1)}h',
-                  icon: Icons.rule,
-                  tone: StatusTone.attention,
+                  value: '${_h(remaining)}h',
+                  desc: 'To monthly ceiling',
+                  tone: BadgeTone.terra,
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.lg),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
+            const SectionEyebrow(eyebrow: 'Register'),
+            WarmCard(
               child: Column(
                 children: [
                   Row(
@@ -263,7 +278,7 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                     ],
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  const Divider(color: AppColors.divider, height: 1),
+                  const HairDivider(),
                   const SizedBox(height: AppSpacing.sm),
                   GridView.builder(
                     shrinkWrap: true,
@@ -293,14 +308,14 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
 
                       Color? dotColor;
                       if (event?.type == CalendarEventType.offDay) {
-                        dotColor = AppColors.slate.withValues(alpha: 0.5);
+                        dotColor = AppColors.slateWarm.withValues(alpha: 0.5);
                       } else if (record != null) {
                         dotColor = switch (record.status) {
-                          AttendanceStatus.present => AppColors.sage,
-                          AttendanceStatus.flagged => AppColors.clay,
-                          AttendanceStatus.pending => AppColors.marigold,
-                          AttendanceStatus.late => AppColors.marigold,
-                          _ => AppColors.slate,
+                          AttendanceStatus.present => AppColors.forestSoft,
+                          AttendanceStatus.flagged => AppColors.claySoftReject,
+                          AttendanceStatus.pending => AppColors.goldSoftDeep,
+                          AttendanceStatus.late => AppColors.goldSoftDeep,
+                          _ => AppColors.slateWarm,
                         };
                       }
 
@@ -312,18 +327,16 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                           duration: const Duration(milliseconds: 150),
                           decoration: BoxDecoration(
                             color: isSelected
-                                ? AppColors.ink
+                                ? WarmKit.espressoBase
                                 : isOffDay
-                                    ? AppColors.paper
-                                    : AppColors.surface,
-                            borderRadius: BorderRadius.circular(6),
+                                    ? AppColors.warmIvory
+                                    : AppColors.warmSurface,
+                            borderRadius: BorderRadius.circular(9),
                             border: isSelected
                                 ? null
                                 : isTodayDate
-                                    ? Border.all(color: AppColors.marigold, width: 1.5)
-                                    : Border.all(
-                                        color: AppColors.divider.withValues(alpha: 0.6),
-                                      ),
+                                    ? Border.all(color: AppColors.terraSpark, width: 1.5)
+                                    : Border.all(color: AppColors.warmLine),
                           ),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -332,12 +345,10 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                                 '$day',
                                 style: AppTextStyles.labelMedium.copyWith(
                                   color: isSelected
-                                      ? AppColors.surface
-                                      : isTodayDate
-                                          ? AppColors.ink
-                                          : isOffDay
-                                              ? AppColors.slate
-                                              : AppColors.ink,
+                                      ? AppColors.onHeroWarm
+                                      : isOffDay
+                                          ? AppColors.slateWarm
+                                          : AppColors.inkWarm,
                                   fontWeight: isSelected || isTodayDate
                                       ? FontWeight.w700
                                       : FontWeight.w500,
@@ -350,7 +361,7 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                                   width: 4,
                                   height: 4,
                                   decoration: BoxDecoration(
-                                    color: isSelected ? AppColors.surface : dotColor,
+                                    color: isSelected ? AppColors.onHeroWarm : dotColor,
                                     shape: BoxShape.circle,
                                   ),
                                 )
@@ -363,53 +374,46 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  const Divider(color: AppColors.divider, height: 1),
+                  const HairDivider(),
                   const SizedBox(height: AppSpacing.md),
                   const Wrap(
                     spacing: AppSpacing.md,
                     runSpacing: AppSpacing.xs,
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      _LegendItem(color: AppColors.marigold, label: 'Today'),
-                      _LegendItem(color: AppColors.sage, label: 'Present'),
-                      _LegendItem(color: AppColors.clay, label: 'Flagged / Exception'),
-                      _LegendItem(color: AppColors.slate, label: 'Off day'),
+                      _LegendItem(color: AppColors.terraSpark, label: 'Today'),
+                      _LegendItem(color: AppColors.forestSoft, label: 'Present'),
+                      _LegendItem(
+                          color: AppColors.claySoftReject, label: 'Flagged / Exception'),
+                      _LegendItem(color: AppColors.slateWarm, label: 'Off day'),
                     ],
                   ),
                 ],
               ),
             ),
             if (data.records.isEmpty) ...[
-              const SizedBox(height: AppSpacing.lg),
-              const EmptyState(
+              const SizedBox(height: AppSpacing.md),
+              const NoteBox(
+                text: 'No verified attendance recorded for this month yet. '
+                    'Confirmed sessions will appear on the register above.',
                 icon: Icons.event_note_outlined,
-                title: 'No attendance recorded',
-                message: 'Verified attendance for this month will appear here.',
               ),
             ],
-            const SizedBox(height: AppSpacing.xl),
-            SectionHeader(
-              eyebrow: 'DAILY FLOW',
-              title: DateFormat('EEEE, d MMMM yyyy').format(_selectedDate),
+            SectionEyebrow(
+              eyebrow: 'Daily flow',
+              title: DateFormat('EEEE, d MMMM').format(_selectedDate),
               trailing: _buildStatusBadge(selectedRecord, selectedEvent),
             ),
-            const SizedBox(height: AppSpacing.md),
-            if (isViewingToday && dayState == ShiftState.working) ...[
+            if (isWorkingNow) ...[
               _buildActiveWorkingCard(context, data, selectedRecord, assignment),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: 10),
             ],
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(color: AppColors.divider),
-              ),
+            WarmCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('DUTY PROGRESSION', style: AppTextStyles.labelSmall),
-                  const SizedBox(height: AppSpacing.sm),
+                  const Eyebrow('Duty progression'),
+                  const SizedBox(height: 12),
                   AttendanceWorkflowStepper(
                     steps: dutyWorkflowSteps(
                       state: dayState,
@@ -417,66 +421,63 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                       approval: selectedRecord?.review ?? ApprovalStatus.pending,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Divider(color: AppColors.divider, height: 1),
-                  const SizedBox(height: AppSpacing.md),
-                  _detailRow('Assigned Location', assignment.locationName),
-                  _detailRow('Shift Window', assignment.shiftLabel),
-                  _detailRow('Supervisor In-Charge', assignment.supervisorName),
-                  _detailRow(
-                    'Recorded Hours',
-                    selectedRecord != null ? '${selectedRecord.hours.toStringAsFixed(1)}h' : '0.0h',
+                  const SizedBox(height: 12),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Assigned location',
+                    value: assignment.locationName.isNotEmpty
+                        ? assignment.locationName
+                        : 'Not assigned',
                   ),
-                  _detailRow(
-                    'Verified Hours',
-                    selectedRecord != null ? '${selectedRecord.verifiedHours.toStringAsFixed(1)}h' : '0.0h',
+                  const HairDivider(),
+                  InfoLine(label: 'Shift window', value: assignment.shiftLabel),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Supervisor in-charge',
+                    value: assignment.supervisorName.isNotEmpty
+                        ? assignment.supervisorName
+                        : 'Unassigned',
                   ),
-                  if (selectedRecord?.checkIn != null)
-                    _detailRow(
-                      'Check-In Time',
-                      DateFormat('h:mm a').format(selectedRecord!.checkIn!),
-                    ),
-                  if (selectedRecord?.checkOut != null)
-                    _detailRow(
-                      'Check-Out Time',
-                      DateFormat('h:mm a').format(selectedRecord!.checkOut!),
-                    ),
-                  if (selectedRecord?.exception != null && selectedRecord!.exception!.isNotEmpty) ...[
-                    const SizedBox(height: AppSpacing.md),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.clayLight,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        border: Border.all(color: AppColors.clay.withValues(alpha: 0.3)),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.flag_outlined, size: 16, color: AppColors.clay),
-                              const SizedBox(width: AppSpacing.xs),
-                              Text(
-                                'Supervisor Note / Exception',
-                                style: AppTextStyles.labelSmall.copyWith(
-                                  color: AppColors.clay,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            selectedRecord.exception!,
-                            style: AppTextStyles.bodySmall.copyWith(color: AppColors.ink),
-                          ),
-                        ],
-                      ),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Recorded hours',
+                    value: selectedRecord != null
+                        ? '${selectedRecord.hours.toStringAsFixed(1)}h'
+                        : '0.0h',
+                  ),
+                  const HairDivider(),
+                  InfoLine(
+                    label: 'Verified hours',
+                    value: selectedRecord != null
+                        ? '${selectedRecord.verifiedHours.toStringAsFixed(1)}h'
+                        : '0.0h',
+                  ),
+                  if (selectedRecord?.checkIn != null) ...[
+                    const HairDivider(),
+                    InfoLine(
+                      label: 'Check-in time',
+                      value: DateFormat('h:mm a').format(selectedRecord!.checkIn!),
                     ),
                   ],
-                  if (isViewingToday && todayShiftState != null && todayShiftState != ShiftState.working) ...[
+                  if (selectedRecord?.checkOut != null) ...[
+                    const HairDivider(),
+                    InfoLine(
+                      label: 'Check-out time',
+                      value: DateFormat('h:mm a').format(selectedRecord!.checkOut!),
+                    ),
+                  ],
+                  if (selectedRecord?.exception != null &&
+                      selectedRecord!.exception!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SoftBox(
+                      label: selectedRecord.exception!,
+                      tone: BadgeTone.clay,
+                      icon: Icons.flag_outlined,
+                    ),
+                  ],
+                  if (isViewingToday &&
+                      todayShiftState != null &&
+                      todayShiftState != ShiftState.working) ...[
                     const SizedBox(height: AppSpacing.lg),
                     _buildTodayAction(context, data, selectedRecord, todayShiftState),
                   ],
@@ -489,142 +490,56 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
     );
   }
 
+  Widget _liveDutyRing(AttendanceRecord? record) {
+    final now = DateTime.now();
+    final checkInTime = record?.checkIn ?? now;
+    final elapsed = now.difference(checkInTime);
+    final h = elapsed.inHours;
+    final m = elapsed.inMinutes % 60;
+    final timer = '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
+    final progress = (elapsed.inMinutes / 60.0 / 2.0).clamp(0.0, 1.0);
+    return Center(
+      child: DutyRing(progress: progress, value: timer, label: 'On duty'),
+    );
+  }
+
   Widget _buildActiveWorkingCard(
     BuildContext context,
     StudentAttendanceData data,
     AttendanceRecord? record,
     Assignment assignment,
   ) {
-    final now = DateTime.now();
-    final checkInTime = record?.checkIn ?? now;
-    final elapsed = now.difference(checkInTime);
-    final hours = elapsed.inHours;
-    final minutes = elapsed.inMinutes % 60;
-    final seconds = elapsed.inSeconds % 60;
-    final timerString =
-        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-
-    final targetHours = assignment.shiftWindows.isNotEmpty ? 2.0 : 2.0;
-    final elapsedHours = elapsed.inMinutes / 60.0;
-    final progress = (elapsedHours / targetHours).clamp(0.0, 1.0);
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.marigold.withValues(alpha: 0.5)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.marigold.withValues(alpha: 0.08),
-            offset: const Offset(0, 4),
-            blurRadius: 12,
-          ),
-        ],
-      ),
+    return WarmCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Flexible(
-                child: Text(
-                  'WORKING IN ${assignment.locationName.toUpperCase()}',
-                  style: AppTextStyles.labelSmall.copyWith(
-                    color: AppColors.marigold,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              Expanded(
+                child: Eyebrow(
+                  assignment.locationName.isNotEmpty
+                      ? 'Working in ${assignment.locationName}'
+                      : 'On duty',
+                  color: AppColors.terraSpark,
                 ),
               ),
-              const SizedBox(width: AppSpacing.xs),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.marigoldLight,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: AppColors.marigold,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'ACTIVE',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.marigold,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const SizedBox(width: 8),
+              const PremiumBadge(label: 'LIVE', tone: BadgeTone.terra, dot: true),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            timerString,
-            style: AppTextStyles.statLarge.copyWith(color: AppColors.ink),
+          const SizedBox(height: 12),
+          const SoftBox(
+            label: 'Selfie captured & matched at check-in',
+            tone: BadgeTone.forest,
+            icon: Icons.check_circle_outline,
           ),
-          const SizedBox(height: 2),
-          Text(
-            'Active session',
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.slate),
+          const SizedBox(height: 8),
+          const SoftBox(
+            label: 'Supervisor sign-off pending at check-out',
+            tone: BadgeTone.gold,
+            icon: Icons.schedule,
           ),
-          const SizedBox(height: AppSpacing.md),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.xs,
-            children: const [
-              _SignalChip(
-                icon: Icons.location_on_outlined,
-                label: 'Location verified',
-                color: AppColors.sage,
-              ),
-              _SignalChip(
-                icon: Icons.verified_user_outlined,
-                label: 'Selfie verified',
-                color: AppColors.sage,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${targetHours.toStringAsFixed(1)} h target',
-                style: AppTextStyles.labelSmall,
-              ),
-              Text(
-                '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}',
-                style: AppTextStyles.labelSmall.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 5,
-              backgroundColor: AppColors.divider,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.sage),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 14),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
@@ -635,15 +550,20 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
                 record?.id ??
                     '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
               ),
-              icon: const Icon(Icons.logout, size: 18),
-              label: const Text('Check Out with Evidence'),
+              icon: const Icon(Icons.power_settings_new, size: 18),
+              label: const Text('Check Out & Submit'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.ink,
+                backgroundColor: AppColors.terraSpark,
                 foregroundColor: AppColors.surface,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
               ),
             ),
+          ),
+          const SizedBox(height: 11),
+          const NoteBox(
+            text: 'Check-out captures a fresh selfie and location, then submits '
+                'the session for supervisor review.',
           ),
         ],
       ),
@@ -702,15 +622,11 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
           width: double.infinity,
           child: ElevatedButton.icon(
             onPressed: () => _openAttendanceFlow(
-              context,
-              data,
-              AttendanceOpKind.checkIn,
-              record?.id,
-            ),
+                context, data, AttendanceOpKind.checkIn, record?.id),
             icon: const Icon(Icons.camera_alt_outlined, size: 18),
             label: const Text('Start Attendance Check-In'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.ink,
+              backgroundColor: WarmKit.espressoBase,
               foregroundColor: AppColors.surface,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
@@ -728,10 +644,10 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
               record?.id ??
                   '${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}',
             ),
-            icon: const Icon(Icons.logout, size: 18),
+            icon: const Icon(Icons.power_settings_new, size: 18),
             label: const Text('Check Out with Evidence'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.ink,
+              backgroundColor: AppColors.terraSpark,
               foregroundColor: AppColors.surface,
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
@@ -743,65 +659,34 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: () => _openAttendanceFlow(
-              context,
-              data,
-              AttendanceOpKind.checkIn,
-              record?.id,
-            ),
+                context, data, AttendanceOpKind.checkIn, record?.id),
             icon: const Icon(Icons.replay, size: 18),
             label: const Text('Resubmit Attendance Evidence'),
             style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.inkWarm,
+              side: const BorderSide(color: AppColors.warmLine),
               padding: const EdgeInsets.symmetric(vertical: 14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
             ),
           ),
         );
       case ShiftState.completed:
-        return Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.sageLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.verified, color: AppColors.sage, size: 20),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text('Attendance verified for today.')),
-            ],
-          ),
+        return const SoftBox(
+          label: 'Attendance verified for today.',
+          tone: BadgeTone.forest,
+          icon: Icons.verified_outlined,
         );
       case ShiftState.pendingVerification:
-        return Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.marigoldLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.hourglass_top, color: AppColors.marigold, size: 20),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text('Attendance submitted — awaiting supervisor confirmation.'),
-              ),
-            ],
-          ),
+        return const SoftBox(
+          label: 'Attendance submitted — awaiting supervisor confirmation.',
+          tone: BadgeTone.gold,
+          icon: Icons.hourglass_top,
         );
       case ShiftState.missed:
-        return Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: AppColors.clayLight,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: const Row(
-            children: [
-              Icon(Icons.event_busy, color: AppColors.clay, size: 20),
-              SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text('Shift window ended without attendance.')),
-            ],
-          ),
+        return const SoftBox(
+          label: 'Shift window ended without attendance.',
+          tone: BadgeTone.clay,
+          icon: Icons.event_busy_outlined,
         );
       case ShiftState.leave:
       case ShiftState.offDay:
@@ -836,53 +721,40 @@ class _StudentAttendanceScreenState extends ConsumerState<StudentAttendanceScree
 
   Widget _buildStatusBadge(AttendanceRecord? record, CalendarEvent? event) {
     if (event?.type == CalendarEventType.offDay) {
-      return const StatusBadge(
-        label: 'Weekly Off',
-        style: StatusStyle(color: AppColors.slate, icon: Icons.event_busy, label: 'Weekly Off'),
-      );
+      return const PremiumBadge(label: 'Weekly Off', tone: BadgeTone.slate);
     }
     if (event != null && event.type != CalendarEventType.offDay) {
-      return StatusBadge(
-        label: event.label,
-        style: StatusStyle(color: AppColors.marigold, icon: Icons.celebration, label: event.label),
-      );
+      return PremiumBadge(label: event.label, tone: BadgeTone.terra);
     }
     if (record == null) {
-      return const StatusBadge(
-        label: 'Scheduled',
-        style: StatusStyle(color: AppColors.slate, icon: Icons.schedule, label: 'Scheduled'),
-      );
+      return const PremiumBadge(label: 'Scheduled', tone: BadgeTone.slate);
     }
-    final style = StatusStyle.fromAttendance(record.status);
-    return StatusBadge(label: record.status.label, style: style);
+    final tone = switch (record.status) {
+      AttendanceStatus.present => BadgeTone.forest,
+      AttendanceStatus.flagged => BadgeTone.clay,
+      AttendanceStatus.pending => BadgeTone.gold,
+      AttendanceStatus.late => BadgeTone.gold,
+      _ => BadgeTone.slate,
+    };
+    return PremiumBadge(label: record.status.label, tone: tone);
   }
 
-  Widget _detailRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            flex: 2,
-            child: Text(label, style: AppTextStyles.bodySmall),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            flex: 3,
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
-      ),
-    );
+  static String _h(num v) {
+    final d = v.toDouble();
+    return d == d.roundToDouble() ? d.toStringAsFixed(0) : d.toStringAsFixed(1);
+  }
+
+  static String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+    if (parts.isEmpty) return '—';
+    if (parts.length == 1) {
+      return parts.first.length >= 2
+          ? parts.first.substring(0, 2).toUpperCase()
+          : parts.first.toUpperCase();
+    }
+    return (parts.first[0] + parts.last[0]).toUpperCase();
   }
 }
-
 class _WeekdayLabel extends StatelessWidget {
   const _WeekdayLabel(this.text, {this.isWeekend = false});
   final String text;
@@ -897,7 +769,7 @@ class _WeekdayLabel extends StatelessWidget {
           text,
           style: AppTextStyles.labelSmall.copyWith(
             fontWeight: FontWeight.w700,
-            color: isWeekend ? AppColors.clay : AppColors.slate,
+            color: isWeekend ? AppColors.claySoftReject : AppColors.slateWarm,
           ),
         ),
       ),
@@ -934,44 +806,31 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-class _SignalChip extends StatelessWidget {
-  const _SignalChip({
-    required this.icon,
-    required this.label,
-    required this.color,
-  });
+class _RoundNavIcon extends StatelessWidget {
+  const _RoundNavIcon({required this.icon, required this.onTap});
 
   final IconData icon;
-  final String label;
-  final Color color;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              label,
-              style: AppTextStyles.labelSmall.copyWith(
-                color: color,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+    return Material(
+      color: AppColors.warmSurface,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Container(
+          width: 38,
+          height: 38,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.warmLine),
           ),
-        ],
+          child: Icon(icon, size: 20, color: AppColors.inkWarm),
+        ),
       ),
     );
   }
 }
+
