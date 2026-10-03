@@ -1,5 +1,6 @@
 import '../../core/models/models.dart';
 import '../../domain/domain.dart';
+import '../../features/auth/auth_session.dart';
 import '../../shared/mock_data/mock_data.dart';
 import '../dev_only.dart';
 
@@ -21,6 +22,31 @@ class LocalAccountRepository implements AccountRepository {
 
   @override
   Future<AccountLink?> currentAccountLink() async {
+    // Resolve the signed-in entity first, so each of the 68 student / 10
+    // supervisor logins maps to its own roster record rather than a shared
+    // demo fixture. Falls back to the seeded demo links for the plain preview.
+    switch (user.role) {
+      case UserRole.student:
+        final id = AuthSession.studentId;
+        if (id != null) {
+          return AccountLink(
+            userId: user.uid,
+            role: UserRole.student,
+            entityId: id,
+          );
+        }
+      case UserRole.supervisor:
+        final id = AuthSession.supervisorId;
+        if (id != null) {
+          return AccountLink(
+            userId: user.uid,
+            role: UserRole.supervisor,
+            entityId: id,
+          );
+        }
+      case UserRole.admin:
+        break;
+    }
     for (final link in demoAccountLinks) {
       if (link.userId == user.uid) return link;
     }

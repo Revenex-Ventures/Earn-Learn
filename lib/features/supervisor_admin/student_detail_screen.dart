@@ -7,6 +7,7 @@ import '../../core/design_system/status_style.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
+import 'roster_actions.dart';
 
 /// Full student dossier payload for the admin detail screen. Attendance is
 /// strictly scoped to this student: golden STU-001 rows are never leaked.
@@ -88,16 +89,36 @@ class AdminStudentDetailScreen extends ConsumerWidget {
             resolveEvidence: buildDayEvidenceResolver(
               ref.watch(attendanceGatewayProvider),
             ),
+            onEditShift: data.assignment == null
+                ? null
+                : () => showEditShiftDialog(
+                      context,
+                      ref,
+                      studentId: data.student.id,
+                      assignment: data.assignment!,
+                    ),
+            onRemove: () => confirmRemoveStudent(
+              context,
+              ref,
+              student: data.student,
+            ),
           ),
     );
   }
 }
 
 class _AdminStudentDetailView extends StatelessWidget {
-  const _AdminStudentDetailView({required this.data, this.resolveEvidence});
+  const _AdminStudentDetailView({
+    required this.data,
+    this.resolveEvidence,
+    this.onEditShift,
+    this.onRemove,
+  });
 
   final AdminStudentDetailData data;
   final DayEvidenceResolver? resolveEvidence;
+  final VoidCallback? onEditShift;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +167,34 @@ class _AdminStudentDetailView extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
+            if (onEditShift != null || onRemove != null) ...[
+              Row(
+                children: [
+                  if (onEditShift != null)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onEditShift,
+                        icon: const Icon(Icons.schedule, size: 18),
+                        label: const Text('Adjust shift'),
+                      ),
+                    ),
+                  if (onEditShift != null && onRemove != null)
+                    const SizedBox(width: 10),
+                  if (onRemove != null)
+                    Expanded(
+                      child: OutlinedButton.icon(
+                        onPressed: onRemove,
+                        icon: const Icon(Icons.person_remove_alt_1, size: 18),
+                        label: const Text('Remove'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             StudentDossierView(
               data: StudentDossierData(
                 student: student,

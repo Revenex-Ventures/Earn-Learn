@@ -12,6 +12,7 @@ import '../../data/data.dart';
 import '../../shared/components/components.dart';
 import '../../shared/mock_data/mock_data.dart';
 import '../auth/auth_session.dart';
+import '../shared/notifications_screen.dart';
 
 final _adminProfileProvider = FutureProvider.autoDispose<UserProfile?>(
     (ref) async {
@@ -174,6 +175,13 @@ class _AdminProfileView extends StatelessWidget {
                 ],
               ),
             ),
+            const SectionEyebrow(
+              eyebrow: 'Messaging',
+              title: 'Notifications & announcements',
+            ),
+            const NotificationsNavCard(route: RoutePaths.adminNotifications),
+            const SizedBox(height: 10),
+            const AdminMessageCard(),
             const SizedBox(height: AppSpacing.xxl),
             PrimaryButton(
               label: 'Sign out',

@@ -16,6 +16,8 @@ class RoutePaths {
   static const studentAttendance = '/student/attendance';
   static const studentAssignment = '/student/assignment';
   static const studentProfile = '/student/profile';
+  static const studentEarnings = '/student/earnings';
+  static const studentNotifications = '/student/notifications';
 
   // Supervisor (Today, Students, Attendance review, Profile)
   static const supervisorHome = '/supervisor';
@@ -25,6 +27,7 @@ class RoutePaths {
   static const supervisorApprovals = supervisorAttendance;
   static const supervisorProfile = '/supervisor/profile';
   static const supervisorStudentDetail = '/supervisor/students/:studentId';
+  static const supervisorNotifications = '/supervisor/notifications';
 
   // Admin (Overview, Manage hub, Reports, More/Governance on phones;
   // full 9 destinations on wide rails)
@@ -41,4 +44,5 @@ class RoutePaths {
   static const adminReports = '/admin/reports';
   static const adminProfile = '/admin/profile';
   static const adminMore = '/admin/more';
+  static const adminNotifications = '/admin/notifications';
 }

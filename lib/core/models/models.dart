@@ -1,5 +1,6 @@
 export 'account_status.dart';
 export 'app_config.dart';
+export 'app_notification.dart';
 export 'approval_status.dart';
 export 'assignment.dart';
 export 'assignment_status.dart';

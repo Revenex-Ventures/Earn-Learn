@@ -1,39 +1,30 @@
 import '../../core/models/models.dart';
 import '../dev_only.dart';
+import 'runtime_store.dart';
 
-/// In-memory record of supervisor decisions for the local/demo build.
+/// Record of supervisor decisions for the local/demo build.
 ///
-/// The local verification queue is served from static fixtures; without a
-/// place to remember decisions, an item a supervisor just approved would
-/// reappear as "pending" on the next read. This singleton lets the queue
-/// reflect the actions taken during the running session. It is intentionally
-/// **not** persisted — the Firestore build carries real state on the server.
-@DevOnly('Session-scoped supervisor decisions for the local/demo queue.')
+/// Thin facade over [RuntimeStore] so decisions taken on demo fixture items
+/// (which have no backing session) are **persisted on-device** and survive an
+/// app restart, exactly like real submitted sessions. Kept as a separate type
+/// so existing call sites don't change.
+@DevOnly('Persisted supervisor decisions for the local/demo queue.')
 class LocalReviewStore {
   LocalReviewStore._();
 
   static final LocalReviewStore instance = LocalReviewStore._();
 
-  final Map<String, ApprovalStatus> _decisions = <String, ApprovalStatus>{};
-  final Map<String, String> _notes = <String, String>{};
-
   /// Records a supervisor decision (and optional note) for a queue item.
-  void record(String itemId, ApprovalStatus status, {String? note}) {
-    _decisions[itemId] = status;
-    if (note != null && note.trim().isNotEmpty) {
-      _notes[itemId] = note.trim();
-    }
-  }
+  void record(String itemId, ApprovalStatus status, {String? note}) =>
+      RuntimeStore.instance.recordDecision(itemId, status, note: note);
 
-  /// The decision recorded for [itemId] during this session, if any.
-  ApprovalStatus? decisionFor(String itemId) => _decisions[itemId];
+  /// The decision recorded for [itemId], if any.
+  ApprovalStatus? decisionFor(String itemId) =>
+      RuntimeStore.instance.decisionFor(itemId);
 
-  /// The note recorded for [itemId] during this session, if any.
-  String? noteFor(String itemId) => _notes[itemId];
+  /// The note recorded for [itemId], if any.
+  String? noteFor(String itemId) => RuntimeStore.instance.noteFor(itemId);
 
   /// Clears all recorded decisions (used by tests).
-  void reset() {
-    _decisions.clear();
-    _notes.clear();
-  }
+  void reset() => RuntimeStore.instance.reset();
 }

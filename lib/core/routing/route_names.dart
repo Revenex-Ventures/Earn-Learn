@@ -12,6 +12,8 @@ class RouteNames {
   static const studentAttendance = 'studentAttendance';
   static const studentAssignment = 'studentAssignment';
   static const studentProfile = 'studentProfile';
+  static const studentEarnings = 'studentEarnings';
+  static const studentNotifications = 'studentNotifications';
 
   // Supervisor
   static const supervisorHome = 'supervisorHome';
@@ -21,6 +23,7 @@ class RouteNames {
   static const supervisorApprovals = supervisorAttendance;
   static const supervisorProfile = 'supervisorProfile';
   static const supervisorStudentDetail = 'supervisorStudentDetail';
+  static const supervisorNotifications = 'supervisorNotifications';
 
   // Admin
   static const adminOverview = 'adminOverview';
@@ -36,4 +39,5 @@ class RouteNames {
   static const adminReports = 'adminReports';
   static const adminProfile = 'adminProfile';
   static const adminMore = 'adminMore';
+  static const adminNotifications = 'adminNotifications';
 }

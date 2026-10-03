@@ -9,6 +9,8 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
+import '../auth/auth_session.dart';
+import '../supervisor_admin/roster_actions.dart';
 
 class _RosterEntry {
   const _RosterEntry({required this.student, required this.assignment});
@@ -177,6 +179,26 @@ class _SupervisorStudentsScreenState
               ),
             ),
 
+            const SizedBox(height: AppSpacing.md),
+
+            // Add-student action — enrols a student straight into this
+            // supervisor's roster (they can sign in immediately afterward).
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                onPressed: () => showAddStudentSheet(
+                  context,
+                  ref,
+                  lockedSupervisorId: AuthSession.supervisorId,
+                ),
+                icon: const Icon(Icons.person_add_alt_1, size: 18),
+                label: const Text('Add student'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.avcoeGreen,
+                ),
+              ),
+            ),
+
             rosterAsync.when(
               loading: () => const _CenteredNote(
                 icon: Icons.people_outline,
@@ -208,7 +230,20 @@ class _SupervisorStudentsScreenState
                       )
                     else
                       for (var i = 0; i < filtered.length; i++) ...[
-                        _RosterRow(entry: filtered[i]),
+                        _RosterRow(
+                          entry: filtered[i],
+                          onEditShift: () => showEditShiftDialog(
+                            context,
+                            ref,
+                            studentId: filtered[i].student.id,
+                            assignment: filtered[i].assignment,
+                          ),
+                          onRemove: () => confirmRemoveStudent(
+                            context,
+                            ref,
+                            student: filtered[i].student,
+                          ),
+                        ),
                         if (i != filtered.length - 1) const SizedBox(height: 10),
                       ],
                   ],
@@ -223,9 +258,15 @@ class _SupervisorStudentsScreenState
 }
 
 class _RosterRow extends StatelessWidget {
-  const _RosterRow({required this.entry});
+  const _RosterRow({
+    required this.entry,
+    required this.onEditShift,
+    required this.onRemove,
+  });
 
   final _RosterEntry entry;
+  final VoidCallback onEditShift;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -243,8 +284,36 @@ class _RosterRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           PremiumBadge(label: assignment.status.label, tone: tone),
-          const SizedBox(width: 8),
-          const RowChevron(),
+          const SizedBox(width: 4),
+          PopupMenuButton<String>(
+            tooltip: 'Manage',
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'shift') {
+                onEditShift();
+              } else if (value == 'remove') {
+                onRemove();
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'shift',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.schedule),
+                  title: Text('Adjust shift'),
+                ),
+              ),
+              PopupMenuItem(
+                value: 'remove',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.person_remove_alt_1),
+                  title: Text('Remove'),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       onTap: () => context.go('/supervisor/students/${entry.student.id}'),

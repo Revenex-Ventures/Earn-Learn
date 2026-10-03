@@ -28,6 +28,9 @@ class AvcoeSeedData {
       name: "Kalsubai Hostel (Old)",
       description: "Hostel attendance, discipline, leave-form checking and register entry",
       supervisorIds: ["SV-02", "SV-03"],
+      latitude: 19.614800,
+      longitude: 74.185600,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -35,6 +38,9 @@ class AvcoeSeedData {
       name: "Krushnavanti Hostel (New)",
       description: "New hostel floor-wise attendance, discipline, cleanliness and register entry",
       supervisorIds: ["SV-02", "SV-03"],
+      latitude: 19.614900,
+      longitude: 74.185800,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -43,6 +49,9 @@ class AvcoeSeedData {
       description:
           "Study hall / CCF maintenance and internet-usage record keeping",
       supervisorIds: ["SV-03"],
+      latitude: 19.614100,
+      longitude: 74.185000,
+      radiusMeters: 50,
       status: LocationStatus.active,
     ),
     Location(
@@ -50,6 +59,9 @@ class AvcoeSeedData {
       name: "Play Ground and Gardening",
       description: "Sports material records, ground upkeep and yoga activity",
       supervisorIds: ["SV-04"],
+      latitude: 19.613700,
+      longitude: 74.184600,
+      radiusMeters: 100,
       status: LocationStatus.active,
     ),
     Location(
@@ -57,6 +69,9 @@ class AvcoeSeedData {
       name: "Harishchandragadh Hostel",
       description: "Hostel attendance, discipline, leave-form checking and register entry",
       supervisorIds: ["SV-02"],
+      latitude: 19.614700,
+      longitude: 74.185400,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -64,6 +79,9 @@ class AvcoeSeedData {
       name: "Sinhagad Hostel",
       description: "Hostel floor-wise attendance, discipline and office work",
       supervisorIds: ["SV-02", "SV-05"],
+      latitude: 19.615100,
+      longitude: 74.186000,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -71,6 +89,9 @@ class AvcoeSeedData {
       name: "Sajjangad Hostel",
       description: "Hostel attendance, discipline and register maintenance",
       supervisorIds: ["SV-02"],
+      latitude: 19.615000,
+      longitude: 74.185900,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -79,6 +100,9 @@ class AvcoeSeedData {
       description:
           "Library discipline, study-room records and night-library assistance",
       supervisorIds: ["SV-01"],
+      latitude: 19.614150,
+      longitude: 74.185050,
+      radiusMeters: 60,
       status: LocationStatus.active,
     ),
     Location(
@@ -86,6 +110,9 @@ class AvcoeSeedData {
       name: "Civil Lab",
       description: "Civil materials-testing lab assistance",
       supervisorIds: [],
+      latitude: 19.614200,
+      longitude: 74.185100,
+      radiusMeters: 40,
       status: LocationStatus.attention,
     ),
     Location(
@@ -93,6 +120,9 @@ class AvcoeSeedData {
       name: "SDO",
       description: "Student Development Office record keeping and support",
       supervisorIds: ["SV-08"],
+      latitude: 19.614250,
+      longitude: 74.185150,
+      radiusMeters: 40,
       status: LocationStatus.active,
     ),
     Location(
@@ -100,6 +130,9 @@ class AvcoeSeedData {
       name: "Gymkhana",
       description: "Gymkhana sports equipment and fitness arena support",
       supervisorIds: ["SV-06"],
+      latitude: 19.613800,
+      longitude: 74.184700,
+      radiusMeters: 80,
       status: LocationStatus.active,
     ),
     Location(
@@ -107,6 +140,9 @@ class AvcoeSeedData {
       name: "Dispensary",
       description: "Dispensary / first-aid centre assistance and visitor log",
       supervisorIds: [],
+      latitude: 19.614850,
+      longitude: 74.185700,
+      radiusMeters: 40,
       status: LocationStatus.attention,
     ),
     Location(
@@ -114,6 +150,9 @@ class AvcoeSeedData {
       name: "Incubation",
       description: "Incubation & innovation cell desk assistance",
       supervisorIds: [],
+      latitude: 19.613900,
+      longitude: 74.184800,
+      radiusMeters: 40,
       status: LocationStatus.attention,
     ),
     Location(
@@ -121,6 +160,9 @@ class AvcoeSeedData {
       name: "Guest House",
       description: "Guest house reception and hospitality support",
       supervisorIds: ["SV-07"],
+      latitude: 19.613400,
+      longitude: 74.184300,
+      radiusMeters: 60,
       status: LocationStatus.active,
     ),
     Location(
@@ -128,6 +170,9 @@ class AvcoeSeedData {
       name: "TPO Office",
       description: "Training & Placement drive coordination and records",
       supervisorIds: ["SV-09", "SV-10"],
+      latitude: 19.614300,
+      longitude: 74.185200,
+      radiusMeters: 40,
       status: LocationStatus.active,
     ),
   ];

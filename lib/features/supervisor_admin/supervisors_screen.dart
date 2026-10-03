@@ -6,6 +6,7 @@ import '../../core/design_system/app_spacing.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
+import 'roster_actions.dart';
 import '../../shared/components/components.dart';
 
 /// Team payload for the admin supervisors directory with coverage joins.
@@ -121,6 +122,18 @@ class _AdminSupervisorsScreenState extends ConsumerState<AdminSupervisorsScreen>
                   setState(() => _department = value as String?),
             ),
             const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                onPressed: () => showAddSupervisorSheet(context, ref),
+                icon: const Icon(Icons.person_add_alt_1, size: 18),
+                label: const Text('Add supervisor'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.avcoeGreen,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             if (filtered.isEmpty)
               const EmptyState(
                 icon: Icons.person_search_outlined,
@@ -133,6 +146,11 @@ class _AdminSupervisorsScreenState extends ConsumerState<AdminSupervisorsScreen>
                   supervisor: filtered[i],
                   locationCount: data.locationCounts[filtered[i].id] ?? 0,
                   studentCount: data.studentCounts[filtered[i].id] ?? 0,
+                  onRemove: () => confirmRemoveSupervisor(
+                    context,
+                    ref,
+                    supervisor: filtered[i],
+                  ),
                 ),
                 if (i != filtered.length - 1) const SizedBox(height: 10),
               ],
@@ -148,11 +166,13 @@ class _SupervisorRow extends StatelessWidget {
     required this.supervisor,
     required this.locationCount,
     required this.studentCount,
+    required this.onRemove,
   });
 
   final Supervisor supervisor;
   final int locationCount;
   final int studentCount;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +187,30 @@ class _SupervisorRow extends StatelessWidget {
       title: supervisor.name,
       subtitle:
           '${supervisor.departmentOrNA} • $locationCount locations • $studentCount students',
-      trailing: PremiumBadge(label: supervisor.status.label, tone: tone),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          PremiumBadge(label: supervisor.status.label, tone: tone),
+          const SizedBox(width: 4),
+          PopupMenuButton<String>(
+            tooltip: 'Manage',
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'remove') onRemove();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'remove',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.person_remove_alt_1),
+                  title: Text('Remove'),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

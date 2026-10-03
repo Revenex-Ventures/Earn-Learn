@@ -11,6 +11,7 @@ import '../../core/routing/route_paths.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
 import '../auth/auth_session.dart';
+import '../shared/notifications_screen.dart';
 
 class _ProfileData {
   const _ProfileData({
@@ -182,6 +183,9 @@ class _SupervisorProfileView extends StatelessWidget {
                 if (i != data.locations.length - 1) const SizedBox(height: 10),
               ],
 
+            const SizedBox(height: AppSpacing.xl),
+            const NotificationsNavCard(
+                route: RoutePaths.supervisorNotifications),
             const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,

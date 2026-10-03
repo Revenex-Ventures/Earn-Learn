@@ -1,14 +1,13 @@
 import '../../core/models/models.dart';
 import '../../domain/domain.dart';
 import '../dev_only.dart';
+import 'runtime_store.dart';
 
-@DevOnly('Golden demo attendance timeline plus in-memory submitted sessions.')
+@DevOnly('Golden demo attendance timeline plus persisted submitted sessions.')
 class LocalAttendanceRepository implements AttendanceRepository {
-  LocalAttendanceRepository({required this.goldenRecords})
-      : _submitted = <String, Session>{};
+  LocalAttendanceRepository({required this.goldenRecords});
 
   final List<AttendanceRecord> goldenRecords;
-  final Map<String, Session> _submitted;
 
   @override
   Future<AttendanceRecord?> recordForDay({
@@ -16,16 +15,16 @@ class LocalAttendanceRepository implements AttendanceRepository {
     required DateTime day,
   }) async {
     final normalized = DateTime(day.year, day.month, day.day);
-    for (final s in _submitted.values) {
+    for (final s in RuntimeStore.instance.sessionsFor(studentId)) {
       final d = DateTime(s.date.year, s.date.month, s.date.day);
-      if (s.studentId == studentId && d.isAtSameMomentAs(normalized)) {
-        return attendanceRecordFromSession(s);
+      if (d.isAtSameMomentAs(normalized)) {
+        final mapped = attendanceRecordFromSession(s);
+        if (mapped != null) return mapped;
       }
     }
     for (final r in goldenRecords) {
       final d = DateTime(r.date.year, r.date.month, r.date.day);
-      if (r.studentId == studentId &&
-          d.isAtSameMomentAs(normalized)) {
+      if (r.studentId == studentId && d.isAtSameMomentAs(normalized)) {
         return r;
       }
     }
@@ -44,8 +43,7 @@ class LocalAttendanceRepository implements AttendanceRepository {
             r.date.month == month.month)
           r,
     ];
-    for (final s in _submitted.values) {
-      if (s.studentId != studentId) continue;
+    for (final s in RuntimeStore.instance.sessionsFor(studentId)) {
       if (s.date.year != month.year || s.date.month != month.month) continue;
       final mapped = attendanceRecordFromSession(s);
       if (mapped == null) continue;
@@ -61,8 +59,8 @@ class LocalAttendanceRepository implements AttendanceRepository {
     return records;
   }
 
-  /// In-memory session helper for local development and testing.
-  void submitSession(Session session) {
-    _submitted[session.id] = session;
-  }
+  /// Persists a submitted session so it survives app restarts and is visible
+  /// across portals (student calendar + supervisor queue).
+  void submitSession(Session session) =>
+      RuntimeStore.instance.putSession(session);
 }

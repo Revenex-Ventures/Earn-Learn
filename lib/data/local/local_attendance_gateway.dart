@@ -8,6 +8,9 @@ import '../dev_only.dart';
 import '../firebase/attendance_gateway.dart';
 import 'local_attendance_repository.dart';
 import 'local_review_store.dart';
+import 'notification_store.dart';
+import 'roster_store.dart';
+import 'runtime_store.dart';
 
 /// Local in-memory [AttendanceGateway] that enforces the [SessionStateMachine]
 /// and updates the [LocalAttendanceRepository] for live student interaction.
@@ -142,6 +145,7 @@ class LocalAttendanceGateway implements AttendanceGateway {
 
     _sessions[sessionId] = completed;
     _repo.submitSession(completed);
+    _notifySupervisorOfCheckOut(completed);
 
     return CheckOutConfirmResult(
       status: completed.status,
@@ -157,10 +161,12 @@ class LocalAttendanceGateway implements AttendanceGateway {
     required ApprovalStatus decision,
     String? note,
   }) async {
-    // Tolerate queue items that were never checked in during this run — the
-    // local queue is served from fixtures, so synthesise a submitted session
+    // Tolerate queue items that were never checked in during this run. Prefer
+    // the real persisted session (so a decision updates the student's actual
+    // record); fall back to the in-run map, then synthesise a submitted session
     // and let the state machine guard every transition from there.
     final base = _sessions[sessionId] ??
+        RuntimeStore.instance.session(studentId, sessionId) ??
         Session(
           id: sessionId,
           studentId: studentId,
@@ -191,11 +197,70 @@ class LocalAttendanceGateway implements AttendanceGateway {
     _sessions[sessionId] = updated;
     _repo.submitSession(updated);
     LocalReviewStore.instance.record(sessionId, updated.review, note: note);
+    _notifyStudentOfDecision(studentId, decision, note);
 
     return ReviewResult(
       status: updated.status,
       review: updated.review,
       note: note,
+    );
+  }
+
+  /// Raises a student-facing notification when a supervisor decides a session.
+  void _notifyStudentOfDecision(
+    String studentId,
+    ApprovalStatus decision,
+    String? note,
+  ) {
+    final (NotificationType type, String title, String body) = switch (decision) {
+      ApprovalStatus.approved => (
+          NotificationType.attendanceApproved,
+          'Attendance approved',
+          'Your duty session was verified and approved.',
+        ),
+      ApprovalStatus.rejected => (
+          NotificationType.attendanceRejected,
+          'Attendance rejected',
+          note == null || note.isEmpty
+              ? 'Your duty session was rejected. Please contact your supervisor.'
+              : 'Rejected: $note',
+        ),
+      ApprovalStatus.flagged => (
+          NotificationType.attendanceFlagged,
+          'Attendance flagged',
+          note == null || note.isEmpty
+              ? 'Your duty session was flagged for another look.'
+              : 'Flagged: $note',
+        ),
+      ApprovalStatus.pending => (
+          NotificationType.checkOutSubmitted,
+          'Under review',
+          'Your duty session is awaiting sign-off.',
+        ),
+    };
+    if (decision == ApprovalStatus.pending) return;
+    NotificationStore.instance.add(
+      recipientRole: UserRole.student,
+      recipientId: studentId,
+      type: type,
+      title: title,
+      body: body,
+    );
+  }
+
+  /// Notifies the student's supervisor that a check-out is awaiting review.
+  void _notifySupervisorOfCheckOut(Session session) {
+    final assignment =
+        RosterStore.instance.assignmentForStudent(session.studentId);
+    final supervisorId = assignment?.supervisorId;
+    if (supervisorId == null || supervisorId.isEmpty) return;
+    final name = mockStudentName(session.studentId);
+    NotificationStore.instance.add(
+      recipientRole: UserRole.supervisor,
+      recipientId: supervisorId,
+      type: NotificationType.checkOutSubmitted,
+      title: 'New check-out to review',
+      body: '$name submitted a duty session for your sign-off.',
     );
   }
 

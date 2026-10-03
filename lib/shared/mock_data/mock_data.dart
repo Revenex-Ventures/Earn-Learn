@@ -3,7 +3,8 @@
 // Dynamic attendance timeline is computed relative to DateTime.now().
 
 import '../../core/models/models.dart';
-import 'avcoe_seed_data.dart';
+import '../../data/local/roster_store.dart';
+import '../../features/auth/auth_session.dart';
 
 final DateTime mockNow = DateTime.now();
 final DateTime mockToday = DateTime(mockNow.year, mockNow.month, mockNow.day);
@@ -11,40 +12,63 @@ final DateTime mockToday = DateTime(mockNow.year, mockNow.month, mockNow.day);
 // -----------------------------------------------------------------------------
 // Institutional Entities
 // -----------------------------------------------------------------------------
-final List<Location> mockLocations = AvcoeSeedData.locations;
-final List<Supervisor> mockSupervisors = AvcoeSeedData.supervisors;
-final List<Student> mockStudents = AvcoeSeedData.students;
-final List<Assignment> mockAssignments = AvcoeSeedData.createAssignments();
+// These resolve to the live, mutable roster owned by [RosterStore] (seeded from
+// [AvcoeSeedData] and persisted on-device), so supervisor / admin edits — add or
+// remove a student, adjust a shift, add a supervisor — are visible everywhere at
+// once and survive an app restart. They return stable list instances, so any
+// repository that captured them keeps seeing the live data.
+List<Location> get mockLocations => RosterStore.instance.locations;
+List<Supervisor> get mockSupervisors => RosterStore.instance.supervisors;
+List<Student> get mockStudents => RosterStore.instance.students;
+List<Assignment> get mockAssignments => RosterStore.instance.assignments;
 
 /// Locations enriched with the students stationed at each (from assignments).
-final List<Location> mockLocationsWithCoverage = [
-  for (final l in mockLocations)
-    Location(
-      id: l.id,
-      name: l.name,
-      description: l.description,
-      latitude: l.latitude,
-      longitude: l.longitude,
-      radiusMeters: l.radiusMeters,
-      supervisorIds: l.supervisorIds,
-      studentIds: mockAssignments
-          .where((a) => a.locationId == l.id)
-          .map((a) => a.studentId)
-          .toList(),
-      status: l.status,
-    ),
-];
+/// Computed live so coverage reflects the current roster.
+List<Location> get mockLocationsWithCoverage => [
+      for (final l in mockLocations)
+        Location(
+          id: l.id,
+          name: l.name,
+          description: l.description,
+          latitude: l.latitude,
+          longitude: l.longitude,
+          radiusMeters: l.radiusMeters,
+          supervisorIds: l.supervisorIds,
+          studentIds: mockAssignments
+              .where((a) => a.locationId == l.id)
+              .map((a) => a.studentId)
+              .toList(),
+          status: l.status,
+        ),
+    ];
 
 /// Server-side policy object (institution), 40h ceiling is a configurable value.
 const AppPolicy mockAppPolicy = AppPolicy(monthlyMaxHours: 40);
 
-/// Default student for demo / student portal. STU-001 is stationed at Kalsubai
-/// Hostel (Old) under Prof. V.S. Ubale, per the allotment sheet.
-final Student mockCurrentStudent = mockStudents.first;
+/// Student for the active session. Resolves to the signed-in student
+/// (`AuthSession.studentId`) so each of the 68 Earn & Learn logins loads their
+/// own record; falls back to the first roster student for the plain preview.
+Student get mockCurrentStudent {
+  final id = AuthSession.studentId;
+  if (id != null) {
+    for (final s in mockStudents) {
+      if (s.id == id) return s;
+    }
+  }
+  return mockStudents.first;
+}
 
-/// Assigned supervisor used by supervisor portals (SV-01, Mr. K.J. Dhage,
-/// Library) — the first named supervisor on the sheet.
-final Supervisor mockCurrentSupervisor = mockSupervisors.first;
+/// Supervisor for the active session — the signed-in supervisor
+/// (`AuthSession.supervisorId`), or the first roster supervisor as a fallback.
+Supervisor get mockCurrentSupervisor {
+  final id = AuthSession.supervisorId;
+  if (id != null) {
+    for (final s in mockSupervisors) {
+      if (s.id == id) return s;
+    }
+  }
+  return mockSupervisors.first;
+}
 
 /// The real Student Development Officer who administers the scheme. Used as
 /// the honest fallback whenever no signed-in account name is available —
@@ -76,27 +100,35 @@ String mockStudentLocation(String studentId) {
 }
 
 /// Profile records for signed-in demo identities (student, supervisor, admin).
-final UserProfile mockStudentUser = UserProfile(
-  uid: 'u-stu-001',
-  email: 'el2627.student@avcoe.edu.in',
-  displayName: mockCurrentStudent.name,
-  role: UserRole.student,
-  status: AccountStatus.active,
-  createdAt: DateTime(mockNow.year - 1, 8, 1),
-  updatedAt: mockNow,
-  lastLoginAt: mockNow,
-);
+/// Built from the resolved active entity so the shell header, avatar and
+/// account link all reflect whoever signed in.
+UserProfile get mockStudentUser {
+  final s = mockCurrentStudent;
+  return UserProfile(
+    uid: 'u-stu-001',
+    email: s.email ?? 'el2627.student@avcoe.edu.in',
+    displayName: s.name,
+    role: UserRole.student,
+    status: AccountStatus.active,
+    createdAt: DateTime(mockNow.year - 1, 8, 1),
+    updatedAt: mockNow,
+    lastLoginAt: mockNow,
+  );
+}
 
-final UserProfile mockSupervisorUser = UserProfile(
-  uid: 'u-sup-001',
-  email: mockCurrentSupervisor.email,
-  displayName: mockCurrentSupervisor.name,
-  role: UserRole.supervisor,
-  status: AccountStatus.active,
-  createdAt: DateTime(mockNow.year - 2, 6, 15),
-  updatedAt: mockNow,
-  lastLoginAt: mockNow,
-);
+UserProfile get mockSupervisorUser {
+  final sv = mockCurrentSupervisor;
+  return UserProfile(
+    uid: 'u-sup-001',
+    email: sv.email,
+    displayName: sv.name,
+    role: UserRole.supervisor,
+    status: AccountStatus.active,
+    createdAt: DateTime(mockNow.year - 2, 6, 15),
+    updatedAt: mockNow,
+    lastLoginAt: mockNow,
+  );
+}
 
 final UserProfile mockAdminUser = UserProfile(
   uid: 'u-admin-001',
@@ -144,21 +176,24 @@ Assignment? mockAssignmentFor(String studentId) {
   return null;
 }
 
-/// Active assignment for the default student.
-final Assignment mockCurrentAssignment = mockAssignments.firstWhere(
-  (a) => a.studentId == mockCurrentStudent.id,
-  orElse: () => mockAssignments.first,
-);
+/// Active assignment for the signed-in student.
+Assignment get mockCurrentAssignment => mockAssignments.firstWhere(
+      (a) => a.studentId == mockCurrentStudent.id,
+      orElse: () => mockAssignments.first,
+    );
 
 /// Primary shift window of the active demo assignment.
-final ShiftWindow mockEveningShift = ShiftWindow(
-  start: mockCurrentAssignment.shiftWindows.isNotEmpty
-      ? mockCurrentAssignment.shiftWindows.first.start
-      : const Duration(hours: 17),
-  end: mockCurrentAssignment.shiftWindows.isNotEmpty
-      ? mockCurrentAssignment.shiftWindows.first.end
-      : const Duration(hours: 20),
-);
+ShiftWindow get mockEveningShift {
+  final a = mockCurrentAssignment;
+  return ShiftWindow(
+    start: a.shiftWindows.isNotEmpty
+        ? a.shiftWindows.first.start
+        : const Duration(hours: 17),
+    end: a.shiftWindows.isNotEmpty
+        ? a.shiftWindows.first.end
+        : const Duration(hours: 20),
+  );
+}
 
 // -----------------------------------------------------------------------------
 // Calendar Events — official programme rules only.

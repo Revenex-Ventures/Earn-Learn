@@ -84,7 +84,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       return;
     }
     setState(() => _submitting = true);
-    AuthSession.signIn(_role);
+    final entityId = DemoCredentials.resolveIdentity(
+      role: _role,
+      username: _userCtrl.text,
+    );
+    AuthSession.signIn(_role, entityId: entityId);
     ref.read(roleSelectorProvider.notifier).select(_role);
     await Future<void>.delayed(const Duration(milliseconds: 260));
     if (mounted) context.go(_rolePath);

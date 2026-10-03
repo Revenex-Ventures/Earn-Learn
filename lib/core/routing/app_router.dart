@@ -8,11 +8,13 @@ import '../../features/auth/splash_screen.dart';
 import '../../data/app_flavor.dart';
 import '../models/user_role.dart';
 import '../../features/demo/demo_scenario_screen.dart';
+import '../../features/shared/notifications_screen.dart';
 import '../../features/shell/student_shell.dart';
 import '../../features/shell/supervisor_admin_shell.dart';
 import '../../features/shell/supervisor_shell.dart';
 import '../../features/student/assignment_screen.dart';
 import '../../features/student/attendance_screen.dart';
+import '../../features/student/earnings_screen.dart';
 import '../../features/student/home_screen.dart';
 import '../../features/student/profile_screen.dart';
 import '../../features/supervisor/attendance_screen.dart';
@@ -81,6 +83,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: RoutePaths.demo,
         name: RouteNames.demo,
         builder: (context, state) => const DemoScenarioScreen(),
+      ),
+
+      // Full-screen pages reached from a role's profile (outside the shells so
+      // they push over the bottom nav with their own back button). Each stays
+      // behind the credential gate via its `/student|supervisor|admin/` prefix.
+      GoRoute(
+        path: RoutePaths.studentEarnings,
+        name: RouteNames.studentEarnings,
+        builder: (context, state) => const StudentEarningsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.studentNotifications,
+        name: RouteNames.studentNotifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.supervisorNotifications,
+        name: RouteNames.supervisorNotifications,
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: RoutePaths.adminNotifications,
+        name: RouteNames.adminNotifications,
+        builder: (context, state) => const NotificationsScreen(),
       ),
 
       // Student shell

@@ -5,6 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'app.dart';
 import 'core/design_system/app_colors.dart';
 import 'data/firebase/firebase_init.dart';
+import 'data/local/notification_store.dart';
+import 'data/local/payroll_store.dart';
+import 'data/local/roster_store.dart';
+import 'data/local/runtime_store.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,5 +27,14 @@ Future<void> main() async {
   ));
 
   await bootstrapFirebase();
+
+  // Hydrate on-device activity (submitted sessions + supervisor decisions) so
+  // the connected loop survives app restarts in the local build. Non-fatal on
+  // failure — the store starts clean.
+  await RuntimeStore.instance.load();
+  await RosterStore.instance.load();
+  await NotificationStore.instance.load();
+  await PayrollStore.instance.load();
+
   runApp(const ProviderScope(child: EarnLearnApp()));
 }

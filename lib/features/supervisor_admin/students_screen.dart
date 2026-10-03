@@ -7,6 +7,7 @@ import '../../core/design_system/app_spacing.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import 'admin_identity_avatar.dart';
+import 'roster_actions.dart';
 import '../../shared/components/components.dart';
 
 /// Roster payload for the admin students directory.
@@ -96,6 +97,18 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
                   setState(() => _department = value as String?),
             ),
             const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: FilledButton.icon(
+                onPressed: () => showAddStudentSheet(context, ref),
+                icon: const Icon(Icons.person_add_alt_1, size: 18),
+                label: const Text('Add student'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.avcoeGreen,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
             if (filtered.isEmpty)
               const EmptyState(
                 icon: Icons.person_search_outlined,
@@ -105,7 +118,14 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
               )
             else
               for (var i = 0; i < filtered.length; i++) ...[
-                _StudentRow(student: filtered[i]),
+                _StudentRow(
+                  student: filtered[i],
+                  onRemove: () => confirmRemoveStudent(
+                    context,
+                    ref,
+                    student: filtered[i],
+                  ),
+                ),
                 if (i != filtered.length - 1) const SizedBox(height: 10),
               ],
           ],
@@ -116,9 +136,10 @@ class _AdminStudentsScreenState extends ConsumerState<AdminStudentsScreen> {
 }
 
 class _StudentRow extends StatelessWidget {
-  const _StudentRow({required this.student});
+  const _StudentRow({required this.student, required this.onRemove});
 
   final Student student;
+  final VoidCallback onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -136,8 +157,24 @@ class _StudentRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           PremiumBadge(label: student.status.label, tone: tone),
-          const SizedBox(width: 8),
-          const RowChevron(),
+          const SizedBox(width: 4),
+          PopupMenuButton<String>(
+            tooltip: 'Manage',
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'remove') onRemove();
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: 'remove',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.person_remove_alt_1),
+                  title: Text('Remove'),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
       onTap: () => context.go('/admin/students/${student.id}'),

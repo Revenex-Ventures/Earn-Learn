@@ -253,6 +253,8 @@ class _StudentProfileView extends StatelessWidget {
               ),
 
             const SizedBox(height: AppSpacing.xl),
+            const _StudentAccountActions(),
+            const SizedBox(height: AppSpacing.xl),
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -281,7 +283,6 @@ class _StudentProfileView extends StatelessWidget {
 
 class _CenteredNote extends StatelessWidget {
   const _CenteredNote({required this.icon, required this.text});
-
   final IconData icon;
   final String text;
 
@@ -298,6 +299,95 @@ class _CenteredNote extends StatelessWidget {
             Text(text, style: AppTextStyles.bodySmall),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// Profile navigation cards: earnings + notifications (with unread badge).
+class _StudentAccountActions extends ConsumerWidget {
+  const _StudentAccountActions();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(notificationUnreadProvider).valueOrNull ?? 0;
+    return Column(
+      children: [
+        _ProfileActionRow(
+          icon: Icons.savings_outlined,
+          title: 'My earnings',
+          subtitle: 'Verified days and estimated stipend',
+          onTap: () => context.push(RoutePaths.studentEarnings),
+        ),
+        const SizedBox(height: 10),
+        _ProfileActionRow(
+          icon: Icons.notifications_none,
+          title: 'Notifications',
+          subtitle: 'Approvals, shift changes and messages',
+          badgeCount: unread,
+          onTap: () async {
+            await context.push(RoutePaths.studentNotifications);
+            ref.invalidate(notificationUnreadProvider);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class _ProfileActionRow extends StatelessWidget {
+  const _ProfileActionRow({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.badgeCount = 0,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final int badgeCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return WarmCard(
+      onTap: onTap,
+      child: Row(
+        children: [
+          WarmIconWell(
+            icon: icon,
+            background: AppColors.forestSoft.withValues(alpha: 0.12),
+            foreground: AppColors.forestSoft,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: AppTextStyles.titleSmall
+                      .copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.slateWarm),
+                ),
+              ],
+            ),
+          ),
+          if (badgeCount > 0)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: PremiumBadge(label: '$badgeCount', tone: BadgeTone.gold),
+            ),
+          const Icon(Icons.chevron_right,
+              size: 20, color: AppColors.slateWarm),
+        ],
       ),
     );
   }

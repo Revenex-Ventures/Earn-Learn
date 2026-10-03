@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -7,6 +8,40 @@ import 'package:earn_and_learn/domain/domain.dart';
 import 'package:earn_and_learn/shared/mock_data/mock_data.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  // flutter_secure_storage talks to a platform channel that has no
+  // implementation under `flutter test`. Back it with an in-memory map so the
+  // repositories that persist (RuntimeStore) can write without throwing.
+  setUpAll(() {
+    const channel =
+        MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+    final store = <String, String>{};
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      switch (call.method) {
+        case 'write':
+          store[call.arguments['key'] as String] =
+              call.arguments['value'] as String;
+          return null;
+        case 'read':
+          return store[call.arguments['key'] as String];
+        case 'readAll':
+          return Map<String, String>.from(store);
+        case 'delete':
+          store.remove(call.arguments['key'] as String);
+          return null;
+        case 'deleteAll':
+          store.clear();
+          return null;
+        case 'containsKey':
+          return store.containsKey(call.arguments['key'] as String);
+        default:
+          return null;
+      }
+    });
+  });
+
   group('local repositories (Stage 1B dev wiring)', () {
     test('student repository reads the workbook seed', () async {
       final repo = LocalStudentRepository(mockStudents);
@@ -88,7 +123,12 @@ void main() {
       const verification = LocalVerificationRepository();
       expect(await verification.openCount(), mockOpenVerifications.length);
 
-      const payroll = LocalPayrollRepository();
+      final payroll = LocalPayrollRepository(
+        students: LocalStudentRepository(mockStudents),
+        assignments: LocalAssignmentRepository(mockAssignments),
+        attendance: LocalAttendanceRepository(goldenRecords: mockAttendance),
+        calendar: const LocalCalendarRepository(),
+      );
       final rollup = await payroll.currentMonth();
       expect(rollup!.studentCount, 68);
     });

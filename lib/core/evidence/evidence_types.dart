@@ -85,3 +85,22 @@ class PoorLocationAccuracyException implements Exception {
   @override
   String toString() => 'GPS accuracy too low (±${accuracyMeters.round()}m, required ±${maxAllowedMeters.round()}m). Please move to an open area.';
 }
+
+/// Thrown when GPS fix is outside the campus geofence.
+class OutsideGeofenceException implements Exception {
+  const OutsideGeofenceException({
+    required this.distanceMeters,
+    required this.geofenceRadiusMeters,
+    this.message,
+  });
+
+  final double distanceMeters;
+  final double geofenceRadiusMeters;
+  final String? message;
+
+  @override
+  String toString() =>
+      message ??
+      'Location is outside the campus geofence (${distanceMeters.round()}m from center, '
+      'allowed radius: ${geofenceRadiusMeters.round()}m). Please move inside the campus zone.';
+}

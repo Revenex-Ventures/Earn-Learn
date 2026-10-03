@@ -29,7 +29,7 @@ class RoleSelectorNotifier extends StateNotifier<UserRole?> {
 
   void clear() {
     ActiveRoleStore.role = null;
-    AuthSession.role = null;
+    AuthSession.signOut();
     state = null;
   }
 }

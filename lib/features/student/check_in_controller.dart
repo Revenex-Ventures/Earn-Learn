@@ -37,6 +37,7 @@ enum AttendanceErrorCategory {
   locationPermanentlyDenied,
   locationServiceDisabled,
   poorAccuracy,
+  outsideGeofence,
   evidenceIncomplete,
   duplicateSubmission,
   stateConflict,
@@ -299,6 +300,14 @@ class AttendanceFlowController extends StateNotifier<AttendanceFlowUi> {
         step: AttendanceFlowStep.failed,
       );
       return null;
+    } on OutsideGeofenceException catch (e) {
+      state = state.copyWith(
+        busy: false,
+        error: e.toString(),
+        errorCategory: AttendanceErrorCategory.outsideGeofence,
+        step: AttendanceFlowStep.failed,
+      );
+      return null;
     } catch (e) {
       state = state.copyWith(
         busy: false,
@@ -472,6 +481,9 @@ class AttendanceFlowController extends StateNotifier<AttendanceFlowUi> {
     } on PoorLocationAccuracyException catch (e) {
       error = e.toString();
       errorCat = AttendanceErrorCategory.poorAccuracy;
+    } on OutsideGeofenceException catch (e) {
+      error = e.toString();
+      errorCat = AttendanceErrorCategory.outsideGeofence;
     } on AttendanceFlowException catch (e) {
       error = e.toString();
       errorCat = e.kind == AttendanceFlowErrorKind.stateConflict
@@ -505,7 +517,8 @@ final attendanceFlowControllerProvider =
       : const LocalEvidenceUploader();
 
   const selfieCapturer = ImagePickerSelfieCapturer();
-  const geoSampler = GeolocatorSampler();
+  final campusGeofence = ref.watch(campusGeofenceConfigProvider).value;
+  final geoSampler = GeolocatorSampler(campusGeofence: campusGeofence);
 
   final evidenceService = EvidenceService(
     selfieCapturer: selfieCapturer,

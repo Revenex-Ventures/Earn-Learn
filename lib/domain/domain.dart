@@ -11,6 +11,7 @@ export 'identity/account_link.dart';
 export 'identity/face_embedding_match.dart';
 export 'identity/identity_resolution.dart';
 export 'payroll/payroll_calc.dart';
+export 'payroll/payroll_service.dart';
 export 'permissions/permissions.dart';
 export 'policy/policy_config.dart';
 export 'repositories/repositories.dart';

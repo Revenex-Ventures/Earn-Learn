@@ -2,27 +2,43 @@ import 'package:geolocator/geolocator.dart' hide LocationServiceDisabledExceptio
 
 import 'evidence_geo.dart';
 import 'evidence_types.dart';
+import 'geofence.dart';
 
 /// Samples the mandatory GPS fix for a check-in/check-out.
 abstract class GeoSampler {
   Future<EvidenceGeo?> sample();
 }
 
-class GeolocatorSampler implements GeoSampler {
-  const GeolocatorSampler({
-    this.timeLimit = const Duration(seconds: 30),
-    // TEMPORARY (until campus coordinates + geofence land): accept any real
-    // device fix so location never blocks a check-in. The 150 m accuracy gate
-    // used to reject weak/indoor fixes with "GPS signal is weak"; while there
-    // are no coordinates to validate against, that strictness only gets in the
-    // way. Restore a tighter value (e.g. 150) and add the geofence check once
-    // location coordinates are configured.
-    this.maxAccuracyMeters = 100000.0,
+/// Configuration for campus geofence validation.
+class CampusGeofenceConfig {
+  const CampusGeofenceConfig({
+    required this.latitude,
+    required this.longitude,
+    required this.radiusMeters,
   });
 
-  static const Duration defaultTimeLimit = Duration(seconds: 30);
+  final double latitude;
+  final double longitude;
+  final double radiusMeters;
+
+  Geofence get geofence => Geofence(
+        latitude: latitude,
+        longitude: longitude,
+        radiusMeters: radiusMeters,
+      );
+}
+
+class GeolocatorSampler implements GeoSampler {
+  const GeolocatorSampler({
+    this.timeLimit = const Duration(seconds: 15),
+    this.maxAccuracyMeters = 150.0,
+    this.campusGeofence,
+  });
+
+  static const Duration defaultTimeLimit = Duration(seconds: 15);
   final Duration timeLimit;
   final double maxAccuracyMeters;
+  final CampusGeofenceConfig? campusGeofence;
 
   @override
   Future<EvidenceGeo?> sample() async {
@@ -54,6 +70,20 @@ class GeolocatorSampler implements GeoSampler {
         accuracyMeters: position.accuracy,
         maxAllowedMeters: maxAccuracyMeters,
       );
+    }
+
+    if (campusGeofence != null) {
+      final geofence = campusGeofence!.geofence;
+      if (!geofence.contains(position.latitude, position.longitude)) {
+        final distance = geofence.distanceTo(
+          position.latitude,
+          position.longitude,
+        );
+        throw OutsideGeofenceException(
+          distanceMeters: distance,
+          geofenceRadiusMeters: campusGeofence!.radiusMeters,
+        );
+      }
     }
 
     return EvidenceGeo(

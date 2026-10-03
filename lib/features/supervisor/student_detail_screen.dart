@@ -7,6 +7,7 @@ import '../../core/design_system/app_text_styles.dart';
 import '../../core/models/models.dart';
 import '../../data/data.dart';
 import '../../shared/components/components.dart';
+import '../supervisor_admin/roster_actions.dart';
 
 class _StudentDetailData {
   const _StudentDetailData({
@@ -102,15 +103,26 @@ class SupervisorStudentDetailScreen extends ConsumerWidget {
         icon: Icons.error_outline,
         text: error.toString(),
       ),
-      data: (data) => _StudentDetailView(data: data),
+      data: (data) => _StudentDetailView(
+        data: data,
+        onEditShift: data.assignment == null
+            ? null
+            : () => showEditShiftDialog(
+                  context,
+                  ref,
+                  studentId: data.student.id,
+                  assignment: data.assignment!,
+                ),
+      ),
     );
   }
 }
 
 class _StudentDetailView extends StatelessWidget {
-  const _StudentDetailView({required this.data});
+  const _StudentDetailView({required this.data, this.onEditShift});
 
   final _StudentDetailData data;
+  final VoidCallback? onEditShift;
 
   @override
   Widget build(BuildContext context) {
@@ -244,6 +256,17 @@ class _StudentDetailView extends StatelessWidget {
                 ],
               ),
             ),
+            if (onEditShift != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: OutlinedButton.icon(
+                  onPressed: onEditShift,
+                  icon: const Icon(Icons.schedule, size: 18),
+                  label: const Text('Adjust shift'),
+                ),
+              ),
+            ],
 
             // Monthly metrics.
             const SectionEyebrow(eyebrow: 'This month', title: 'At a glance'),
